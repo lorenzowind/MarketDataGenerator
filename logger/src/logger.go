@@ -1,15 +1,25 @@
 package src
 
-func CreateLog(a_strPath, a_strLogName string) (string, error) {
-	var (
-		err          error
-		strFolderLog string
-	)
+func StartAppLog(a_strPath string) (string, error) {
+	return createLogFolder(a_strPath)
+}
 
-	strFolderLog, err = createLogFolder(a_strPath)
-	if err != nil {
-		return strFolderLog, err
-	}
+func CreateLog(a_strFolderPath, a_strLogName string) (string, error) {
+	return createLogFile(a_strFolderPath, a_strLogName)
+}
 
-	return createLogFile(strFolderLog, a_strLogName)
+func Log(a_strPath, a_strMethodName, a_strMessage string) error {
+	return logFile(a_strPath, a_strMethodName+" : "+a_strMessage)
+}
+
+func LogWarning(a_strPath, a_strMethodName, a_strMessage string) error {
+	return logFile(a_strPath, "***Warning*** : "+a_strMethodName+" : "+a_strMessage)
+}
+
+func LogError(a_strPath, a_strMethodName, a_strMessage string) error {
+	return logFile(a_strPath, "***Error*** : "+a_strMethodName+" : "+a_strMessage)
+}
+
+func LogException(a_strPath, a_strMethodName, a_strMessage string) error {
+	return logFile(a_strPath, "***Exception*** : "+a_strMethodName+" : "+a_strMessage)
 }

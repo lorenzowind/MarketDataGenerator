@@ -32,6 +32,12 @@ func createLogFile(a_strFolderPath, a_strLogName string) (string, error) {
 	strFileName = a_strLogName + c_strLogExtension
 	strFullPath = filepath.Join(a_strFolderPath, strFileName)
 
+	// Verifica se arquivo de log ja existe
+	_, err = os.Stat(strFullPath)
+	if err == nil {
+		return "", errors.New("log already exists")
+	}
+
 	// Cria arquivo de log
 	file, err = os.OpenFile(strFullPath, os.O_CREATE, 0644)
 	if err != nil {
@@ -116,4 +122,31 @@ func renameOldLogFolder(a_strPath, a_strFolder, a_strFullPath string) error {
 	}
 
 	return nil
+}
+
+func logFile(a_strPath, a_strMessage string) error {
+	var (
+		err            error
+		file           *os.File
+		strFullMessage string
+	)
+
+	// Abre arquivo de log
+	file, err = os.OpenFile(a_strPath, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+
+	strFullMessage = getFullTimestamp() + " : " + a_strMessage + "\n"
+
+	_, err = file.WriteString(strFullMessage)
+
+	defer file.Close()
+
+	return err
+}
+
+func getFullTimestamp() string {
+	dtNow := time.Now()
+	return fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d.%03d", dtNow.Day(), dtNow.Month(), dtNow.Year(), dtNow.Hour(), dtNow.Minute(), dtNow.Second(), dtNow.UnixMilli()/1e10)
 }
