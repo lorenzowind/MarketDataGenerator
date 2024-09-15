@@ -37,7 +37,7 @@ func printMainMenuOptions() {
 
 	strOptions = "\n\n"
 	strOptions += "\t0 - Exit\n"
-	strOptions += "\t1 - Generate data\n"
+	strOptions += "\t1 - Run trade data\n"
 
 	logger.Log(m_strLogFile, c_strMethodName, strOptions)
 	logger.Log(m_strLogFile, c_strMethodName, "Write an option on terminal")
