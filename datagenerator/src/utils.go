@@ -11,10 +11,6 @@ import (
 )
 
 func getLogsPath() string {
-	const (
-		c_strDataFolder = "/data"
-		c_strLogsFolder = "/logs"
-	)
 	var (
 		strFile     string
 		strRootPath string
@@ -77,6 +73,9 @@ func getOption() int {
 
 	// Remove o \n do conteudo lido
 	strRead = strings.TrimSuffix(strRead, "\n")
+
+	// Remove o \r do conteudo lido
+	strRead = strings.TrimSuffix(strRead, "\r")
 
 	// Converte opcao lida do terminal
 	nResult, err = strconv.Atoi(strRead)
