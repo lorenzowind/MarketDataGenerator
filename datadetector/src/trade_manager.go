@@ -1,9 +1,9 @@
 package src
 
-func processEvents(a_TradeRunInfo TradeRunInfoType) {
+func processEvents(a_TickerData TickerDataType) {
 
 }
 
-func exportResults(a_TradeRunInfo TradeRunInfoType) {
+func exportResults(a_TickerData TickerDataType) {
 
 }

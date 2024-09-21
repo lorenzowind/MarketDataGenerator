@@ -2,7 +2,7 @@ package src
 
 import (
 	logger "marketmanipulationdetector/logger/src"
-	"time"
+	"strconv"
 )
 
 var (
@@ -73,6 +73,7 @@ func startTradeRunForUniqueTicker(a_bParallelRun bool) {
 	)
 	var (
 		err          error
+		FilesInfo    FilesInfoType
 		TradeRunInfo TradeRunInfoType
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
@@ -85,12 +86,13 @@ func startTradeRunForUniqueTicker(a_bParallelRun bool) {
 		if err == nil {
 			logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
+			FilesInfo, err = getUniqueTickerFiles(TradeRunInfo)
 			// Verifica se arquivos (compra, venda e negocio) existem conforme ticker e data informado
-			if findTradeFiles(TradeRunInfo) {
+			if err == nil {
 				// Inicia enriquecimento
-				runUniqueTicker(a_bParallelRun, TradeRunInfo)
+				runUniqueTicker(a_bParallelRun, FilesInfo)
 			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Files not found")
+				logger.LogError(m_strLogFile, c_strMethodName, "Ticker file not found")
 			}
 		}
 	}
@@ -105,8 +107,8 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 	var (
 		err          error
 		TradeRunInfo TradeRunInfoType
-		lstTickers   []string
-		dtTickerDate time.Time
+		FilesInfo    FilesInfoType
+		arrFilesInfo []FilesInfoType
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
@@ -116,25 +118,19 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 	} else {
 		TradeRunInfo, err = readTradeRunInput(false)
 		if err == nil {
-			dtTickerDate = TradeRunInfo.dtTickerDate
-			logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+dtTickerDate.String())
+			logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
 			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
-			lstTickers = getValidTickers(TradeRunInfo.dtTickerDate)
+			arrFilesInfo = getAllTickersFiles(TradeRunInfo.dtTickerDate)
 
-			if len(lstTickers) > 0 {
+			if len(arrFilesInfo) > 0 {
 				// Itera sobre tickers disponiveis e processa cada um
-				for _, strTicker := range lstTickers {
-					TradeRunInfo = TradeRunInfoType{
-						strTickerName: strTicker,
-						dtTickerDate:  dtTickerDate,
-					}
-
+				for _, FilesInfo = range arrFilesInfo {
 					// Inicia enriquecimento
-					runUniqueTicker(a_bParallelRun, TradeRunInfo)
+					runUniqueTicker(a_bParallelRun, FilesInfo)
 				}
 			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "No files found")
+				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
 			}
 		}
 	}
@@ -142,31 +138,35 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 	logger.Log(m_strLogFile, c_strMethodName, "End")
 }
 
-func runUniqueTicker(a_bParallelRun bool, a_TradeRunInfo TradeRunInfoType) {
+func runUniqueTicker(a_bParallelRun bool, a_FilesInfo FilesInfoType) {
 	const (
 		c_strMethodName = "detector.runUniqueTicker"
 	)
 	if a_bParallelRun {
 		logger.Log(m_strLogFile, c_strMethodName, "Not implemented yet")
 	} else {
-		processTradeData(a_TradeRunInfo)
+		processTradeData(a_FilesInfo)
 	}
 }
 
-func processTradeData(a_TradeRunInfo TradeRunInfoType) {
+func processTradeData(a_FilesInfo FilesInfoType) {
 	const (
 		c_strMethodName = "detector.processTradeData"
+	)
+	var (
+		TickerData TickerDataType
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
 	// 1 - Carrega os dados a partir dos arquivos e armazena tudo em memoria
-	loadTradeDataFromFile(a_TradeRunInfo)
+	TickerData = loadTickerData(a_FilesInfo)
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : Trades="+strconv.Itoa(TickerData.lstTrade.Len())+" : Buy="+strconv.Itoa(TickerData.lstBuy.Len())+" : Sell="+strconv.Itoa(TickerData.lstSell.Len()))
 
 	// 2 - Inicia o processamento dos dados (um por um)
-	processEvents(a_TradeRunInfo)
+	processEvents(TickerData)
 
 	// 3 - Exporta resultados da detecção
-	exportResults(a_TradeRunInfo)
+	exportResults(TickerData)
 
 	logger.Log(m_strLogFile, c_strMethodName, "End")
 }

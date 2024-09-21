@@ -99,7 +99,7 @@ func getOption() int {
 		return -1
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read option successfully : nResult="+strRead)
+	logger.Log(m_strLogFile, c_strMethodName, "Read option successfully : nResult="+strconv.Itoa(nResult))
 
 	return nResult
 }
@@ -170,12 +170,7 @@ func validateTradeRunInput(a_strTickerName, a_strTickerDate string, a_bReadTicke
 	}
 
 	// Valida data informada no terminal e converte para um tipo data
-	if len(a_strTickerDate) == len(time.DateOnly)+1 {
-		dtTickerDate, err = time.Parse(time.DateOnly, a_strTickerDate[:10])
-	} else {
-		err = errors.New("ticker date size is invalid")
-	}
-
+	dtTickerDate, err = validateDateString(a_strTickerDate)
 	if err != nil {
 		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker date : "+err.Error())
 		return TradeRunInfoType{}, errors.New("ticker date validation failure")
@@ -185,6 +180,36 @@ func validateTradeRunInput(a_strTickerName, a_strTickerDate string, a_bReadTicke
 		strTickerName: a_strTickerName,
 		dtTickerDate:  dtTickerDate,
 	}, nil
+}
+
+func validateDateString(a_strDate string) (time.Time, error) {
+	var (
+		err    error
+		dtDate time.Time
+	)
+	if len(a_strDate) == len(time.DateOnly) {
+		dtDate, err = time.Parse(time.DateOnly, a_strDate[:10])
+	} else {
+		err = errors.New("ticker date size is invalid")
+	}
+
+	return dtDate, err
+}
+
+func checkIfHasSameDate(a_dtLeft, a_dtRight time.Time) bool {
+	return a_dtLeft.Format(time.DateOnly) == a_dtRight.Format(time.DateOnly)
+}
+
+func checkIfContains(a_strItem string, a_arrList []FilesInfoType) bool {
+	var (
+		FilesInfo FilesInfoType
+	)
+	for _, FilesInfo = range a_arrList {
+		if FilesInfo.TradeRunInfo.strTickerName == a_strItem {
+			return true
+		}
+	}
+	return false
 }
 
 func checkFileExists(a_strFullPath string) bool {
