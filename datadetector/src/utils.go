@@ -2,6 +2,7 @@ package src
 
 import (
 	"bufio"
+	"container/list"
 	"errors"
 	logger "marketmanipulationdetector/logger/src"
 	"os"
@@ -187,13 +188,43 @@ func validateDateString(a_strDate string) (time.Time, error) {
 		err    error
 		dtDate time.Time
 	)
-	if len(a_strDate) == len(time.DateOnly) {
-		dtDate, err = time.Parse(time.DateOnly, a_strDate[:10])
-	} else {
-		err = errors.New("ticker date size is invalid")
+	if len(a_strDate) > len(time.DateOnly) {
+		a_strDate = a_strDate[:len(time.DateOnly)]
 	}
 
+	dtDate, err = time.Parse(time.DateOnly, a_strDate)
 	return dtDate, err
+}
+
+func validateTimestampString(a_strTimestamp string) (time.Time, error) {
+	var (
+		err    error
+		dtDate time.Time
+	)
+	if len(a_strTimestamp) > len(c_strCustomTimestampLayout) {
+		a_strTimestamp = a_strTimestamp[:len(c_strCustomTimestampLayout)]
+	}
+
+	dtDate, err = time.Parse(c_strCustomTimestampLayout, a_strTimestamp)
+	return dtDate, err
+}
+
+func validateIntString(a_strValue string) (int, error) {
+	var (
+		err    error
+		nValue int
+	)
+	nValue, err = strconv.Atoi(a_strValue)
+	return nValue, err
+}
+
+func validateFloatString(a_strValue string) (float64, error) {
+	var (
+		err    error
+		sValue float64
+	)
+	sValue, err = strconv.ParseFloat(a_strValue, 64)
+	return sValue, err
 }
 
 func checkIfHasSameDate(a_dtLeft, a_dtRight time.Time) bool {
@@ -218,4 +249,100 @@ func checkFileExists(a_strFullPath string) bool {
 	)
 	_, err = os.Stat(a_strFullPath)
 	return err == nil
+}
+
+//lint:ignore U1000 Ignore unused function
+func printListTrades(a_lstData list.List) {
+	const (
+		c_strMethodName = "utils.printListTrades"
+	)
+	var (
+		TradeData TradeDataType
+		Temp      *list.Element
+	)
+	if a_lstData.Front() == nil {
+		logger.Log(m_strLogFile, c_strMethodName, "List of trades is empty")
+	} else {
+		Temp = a_lstData.Front()
+		// Itera sobre cada item da lista encadeada
+		for Temp != nil {
+			TradeData = Temp.Value.(TradeDataType)
+			// Loga os dados de negocio
+			printTradeData(TradeData)
+			// Verifica se chegou no ultimo item
+			Temp = Temp.Next()
+			if Temp == a_lstData.Front() {
+				break
+			}
+		}
+	}
+}
+
+func printTradeData(a_TradeData TradeDataType) {
+	const (
+		c_strMethodName = "utils.printTradeData"
+	)
+	var (
+		strResult string
+	)
+	strResult = "chOperation=" + string(a_TradeData.chOperation)
+	strResult = strResult + " : dtTime=" + a_TradeData.dtTime.String()
+	strResult = strResult + " : nID=" + strconv.Itoa(a_TradeData.nID)
+	strResult = strResult + " : nOfferGenerationID=" + strconv.Itoa(a_TradeData.nOfferGenerationID)
+	strResult = strResult + " : nOfferPrimaryID=" + strconv.Itoa(a_TradeData.nOfferPrimaryID)
+	strResult = strResult + " : nOfferSecondaryID=" + strconv.Itoa(a_TradeData.nOfferSecondaryID)
+	strResult = strResult + " : strAccount=" + a_TradeData.strAccount
+	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_TradeData.nQuantity)
+	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_TradeData.sPrice, 'f', -1, 64)
+
+	logger.Log(m_strLogFile, c_strMethodName, strResult)
+}
+
+//lint:ignore U1000 Ignore unused function
+func printListOffers(a_lstData list.List) {
+	const (
+		c_strMethodName = "utils.printListOffers"
+	)
+	var (
+		OfferData OfferDataType
+		Temp      *list.Element
+	)
+	if a_lstData.Front() == nil {
+		logger.Log(m_strLogFile, c_strMethodName, "List of offers is empty")
+	} else {
+		Temp = a_lstData.Front()
+		// Itera sobre cada item da lista encadeada
+		for Temp != nil {
+			OfferData = Temp.Value.(OfferDataType)
+			// Loga os dados da oferta
+			printOfferData(OfferData)
+			// Verifica se chegou no ultimo item
+			Temp = Temp.Next()
+			if Temp == a_lstData.Front() {
+				break
+			}
+		}
+	}
+}
+
+func printOfferData(a_OfferData OfferDataType) {
+	const (
+		c_strMethodName = "utils.printOfferData"
+	)
+	var (
+		strResult string
+	)
+	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
+	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
+	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)
+	strResult = strResult + " : nSecondaryID=" + strconv.Itoa(a_OfferData.nSecondaryID)
+	strResult = strResult + " : nTradeID=" + strconv.Itoa(a_OfferData.nTradeID)
+	strResult = strResult + " : strAccount=" + a_OfferData.strAccount
+	strResult = strResult + " : nCurrentQuantity=" + strconv.Itoa(a_OfferData.nCurrentQuantity)
+	strResult = strResult + " : nTradeQuantity=" + strconv.Itoa(a_OfferData.nTradeQuantity)
+	strResult = strResult + " : nTotalQuantity=" + strconv.Itoa(a_OfferData.nTotalQuantity)
+	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64)
+
+	logger.Log(m_strLogFile, c_strMethodName, strResult)
 }

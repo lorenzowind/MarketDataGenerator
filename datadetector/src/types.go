@@ -15,10 +15,12 @@ const (
 )
 
 const (
-	ofopCreation OfferOperationType = '0' // evento de criacao da oferta
-	ofopCancel                      = '4' // evento de cancelamento da oferta
-	ofopEdit                        = '5' // evento de cancelamento da oferta
-	ofopTrade                       = 'F' // evento de fechamento de negocio
+	ofopCreation  OfferOperationType = '0' // evento de criacao da oferta
+	ofopCancel                       = '4' // evento de cancelamento da oferta
+	ofopEdit                         = '5' // evento de cancelamento da oferta
+	ofopTrade                        = 'F' // evento de fechamento de negocio
+	ofopExpired                      = 'C' // evento de expiracao da oferta
+	ofopReafirmed                    = 'D' // evento de reafirmacao da oferta
 	ofopUnknown
 )
 
