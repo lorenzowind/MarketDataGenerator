@@ -68,6 +68,50 @@ func processEvents(a_TickerData TickerDataType) {
 }
 
 func processOffer(a_OfferData OfferDataType) {
+	const (
+		c_strMethodName = "manager.processOffer"
+	)
+	switch a_OfferData.chOperation {
+	case ofopCreation:
+		processEventCreation(a_OfferData)
+	case ofopCancel:
+		processEventCancel(a_OfferData)
+	case ofopEdit:
+		processEventEdit(a_OfferData)
+	case ofopExpired:
+		processEventExpired(a_OfferData)
+	case ofopReafirmed:
+		processEventReafirmed(a_OfferData)
+	case ofopTrade:
+		processEventTrade(a_OfferData)
+	case ofopUnknown:
+		logger.LogError(m_strLogFile, c_strMethodName, "Unknown offer operation : chOperation="+string(a_OfferData.chOperation))
+	default:
+		logger.LogError(m_strLogFile, c_strMethodName, "Default offer operation : chOperation="+string(a_OfferData.chOperation))
+	}
+}
+
+func processEventCreation(a_OfferData OfferDataType) {
+
+}
+
+func processEventCancel(a_OfferData OfferDataType) {
+
+}
+
+func processEventEdit(a_OfferData OfferDataType) {
+
+}
+
+func processEventExpired(a_OfferData OfferDataType) {
+
+}
+
+func processEventReafirmed(a_OfferData OfferDataType) {
+
+}
+
+func processEventTrade(a_OfferData OfferDataType) {
 
 }
 

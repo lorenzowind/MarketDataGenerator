@@ -9,9 +9,9 @@ type TradeOperationType byte
 type OfferOperationType byte
 
 const (
-	tropBuy  TradeOperationType = 'C' // operacao de compra
-	tropSell                    = 'V' // operacao de venda
-	tropUnknown
+	tropBuy     TradeOperationType = 'C' // operacao de compra
+	tropSell                       = 'V' // operacao de venda
+	tropUnknown                    = iota
 )
 
 const (
@@ -21,7 +21,7 @@ const (
 	ofopTrade                        = 'F' // evento de fechamento de negocio
 	ofopExpired                      = 'C' // evento de expiracao da oferta
 	ofopReafirmed                    = 'D' // evento de reafirmacao da oferta
-	ofopUnknown
+	ofopUnknown                      = iota
 )
 
 type TradeRunInfoType struct {
