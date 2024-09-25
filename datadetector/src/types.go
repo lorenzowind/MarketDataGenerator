@@ -43,6 +43,34 @@ type TickerDataType struct {
 	lstSell   list.List // doubly linked list de dados de ofertas de venda
 }
 
+type EventInfoType struct {
+	bBuyEvent      bool
+	bProcessEvent  bool
+	bBuyEventsEnd  bool
+	bSellEventsEnd bool
+}
+
+type DataInfoType struct {
+	lstBuyBookPrice  list.List // doubly linked list dos grupos de preco de compra
+	lstSellBookPrice list.List // doubly linked list dos grupos de preco de venda
+	lstBuyOffers     list.List // doubly linked list das ofertas de compra no livro
+	lstSellOffers    list.List // doubly linked list das ofertas de venda no livro
+}
+
+type BookPriceType struct {
+	sPrice    float64
+	nQuantity int
+	nCount    int
+}
+
+type BookOfferType struct {
+	sPrice        float64
+	nQuantity     int
+	nSecondaryID  int
+	nGenerationID int
+	strAccount    string
+}
+
 type TradeDataType struct {
 	chOperation        TradeOperationType
 	dtTime             time.Time
