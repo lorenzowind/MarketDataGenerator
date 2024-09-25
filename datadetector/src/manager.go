@@ -200,11 +200,14 @@ func processEventCreation(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a
 		for Temp != nil {
 			BookPrice = Temp.Value.(BookPriceType)
 			if BookPrice.sPrice == NewBookPrice.sPrice {
-				// 1 - Atualizado grupo de preco existente
-				BookPrice.nQuantity += a_OfferData.nTotalQuantity
-				BookPrice.nCount++
+				// 1 - Atualizado grupo de preco existente (adiciona atualizado e apaga antigo)
+				NewBookPrice = BookPrice
+				NewBookPrice.nQuantity += a_OfferData.nTotalQuantity
+				NewBookPrice.nCount++
+				lstData.InsertAfter(NewBookPrice, Temp)
+				lstData.Remove(Temp)
 				break
-			} else if (BookOffer.sPrice > NewBookOffer.sPrice && a_bBuyEvent) || (BookOffer.sPrice < NewBookOffer.sPrice && !a_bBuyEvent) {
+			} else if (BookPrice.sPrice > NewBookPrice.sPrice && a_bBuyEvent) || (BookPrice.sPrice < NewBookPrice.sPrice && !a_bBuyEvent) {
 				// 2 - Inserida antes do grupo analisado, pois possui preco maior
 				lstData.InsertBefore(NewBookPrice, Temp)
 				break
@@ -212,7 +215,7 @@ func processEventCreation(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a
 				TempAux = Temp.Next()
 				if TempAux != nil {
 					BookPriceAux = Temp.Value.(BookPriceType)
-					if BookPriceAux.sPrice > NewBookPrice.sPrice {
+					if (BookPriceAux.sPrice > NewBookPrice.sPrice && a_bBuyEvent) || (BookPriceAux.sPrice < NewBookPrice.sPrice && !a_bBuyEvent) {
 						// 3 - Inserido entre grupos, seguindo a ordem crescente do preco
 						lstData.InsertAfter(NewBookPrice, Temp)
 						break

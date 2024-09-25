@@ -340,3 +340,81 @@ func printOfferData(a_OfferData OfferDataType) {
 
 	logger.Log(m_strLogFile, c_strMethodName, strResult)
 }
+
+//lint:ignore U1000 Ignore unused function
+func printListBookOffers(a_lstData list.List) {
+	const (
+		c_strMethodName = "utils.printListBookOffers"
+	)
+	var (
+		BookOffer BookOfferType
+		Temp      *list.Element
+	)
+	if a_lstData.Front() == nil {
+		logger.Log(m_strLogFile, c_strMethodName, "List of book offers is empty")
+	} else {
+		Temp = a_lstData.Front()
+		// Itera sobre cada item da lista encadeada
+		for Temp != nil {
+			BookOffer = Temp.Value.(BookOfferType)
+			// Loga os dados da oferta
+			printBookOffer(BookOffer)
+			// Obtem o proximo item
+			Temp = Temp.Next()
+		}
+	}
+}
+
+func printBookOffer(a_BookOffer BookOfferType) {
+	const (
+		c_strMethodName = "utils.printBookOffer"
+	)
+	var (
+		strResult string
+	)
+	strResult = "nGenerationID=" + strconv.Itoa(a_BookOffer.nGenerationID)
+	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_BookOffer.nQuantity)
+	strResult = strResult + " : nSecondaryID=" + strconv.Itoa(a_BookOffer.nSecondaryID)
+	strResult = strResult + " : strAccount=" + a_BookOffer.strAccount
+	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_BookOffer.sPrice, 'f', -1, 64)
+
+	logger.Log(m_strLogFile, c_strMethodName, strResult)
+}
+
+//lint:ignore U1000 Ignore unused function
+func printListBookPrices(a_lstData list.List) {
+	const (
+		c_strMethodName = "utils.printListBookPrices"
+	)
+	var (
+		BookPrice BookPriceType
+		Temp      *list.Element
+	)
+	if a_lstData.Front() == nil {
+		logger.Log(m_strLogFile, c_strMethodName, "List of book prices is empty")
+	} else {
+		Temp = a_lstData.Front()
+		// Itera sobre cada item da lista encadeada
+		for Temp != nil {
+			BookPrice = Temp.Value.(BookPriceType)
+			// Loga os dados da oferta
+			printBookPrice(BookPrice)
+			// Obtem o proximo item
+			Temp = Temp.Next()
+		}
+	}
+}
+
+func printBookPrice(a_BookPrice BookPriceType) {
+	const (
+		c_strMethodName = "utils.printBookOffer"
+	)
+	var (
+		strResult string
+	)
+	strResult = "sPrice=" + strconv.FormatFloat(a_BookPrice.sPrice, 'f', -1, 64)
+	strResult = strResult + " : nCount=" + strconv.Itoa(a_BookPrice.nCount)
+	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_BookPrice.nQuantity)
+
+	logger.Log(m_strLogFile, c_strMethodName, strResult)
+}
