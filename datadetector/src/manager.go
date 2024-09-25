@@ -17,15 +17,19 @@ func processEvents(a_TickerData TickerDataType) {
 		SellData  OfferDataType
 		OfferData OfferDataType
 		bProcess  bool
+		bBuyEnd   bool
+		bSellEnd  bool
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
 	NextBuy = a_TickerData.lstBuy.Front()
 	NextSell = a_TickerData.lstSell.Front()
 
+	bBuyEnd = false
+	bSellEnd = false
 	for {
 		bProcess = true
-		if NextBuy != nil && NextSell != nil {
+		if NextBuy != nil && NextSell != nil && !bBuyEnd && !bSellEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
 			SellData = NextSell.Value.(OfferDataType)
 			// Verifica ID de geracao para verificar qual evento ocorreu primeiro
@@ -33,23 +37,35 @@ func processEvents(a_TickerData TickerDataType) {
 				OfferData = BuyData
 				// Obtem o proximo evento de oferta de compra
 				NextBuy = NextBuy.Next()
+				if NextBuy == nil {
+					bBuyEnd = true
+				}
 			} else if SellData.nGenerationID < BuyData.nGenerationID {
 				OfferData = SellData
 				// Obtem o proximo evento de oferta de venda
 				NextSell = NextSell.Next()
+				if NextSell == nil {
+					bSellEnd = true
+				}
 			} else {
 				logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
 			}
-		} else if NextBuy != nil {
+		} else if NextBuy != nil && !bBuyEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
 			OfferData = BuyData
 			// Obtem o proximo evento de oferta de compra
 			NextBuy = NextBuy.Next()
-		} else if NextSell != nil {
+			if NextBuy == nil {
+				bBuyEnd = true
+			}
+		} else if NextSell != nil && !bSellEnd {
 			SellData = NextSell.Value.(OfferDataType)
 			OfferData = SellData
 			// Obtem o proximo evento de oferta de venda
 			NextSell = NextSell.Next()
+			if NextSell == nil {
+				bSellEnd = true
+			}
 		} else {
 			bProcess = false
 			logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
@@ -59,7 +75,7 @@ func processEvents(a_TickerData TickerDataType) {
 			processOffer(OfferData)
 		}
 		// Condicao de parada -> os eventos foram processados
-		if NextBuy == a_TickerData.lstBuy.Front() && NextSell == a_TickerData.lstSell.Front() {
+		if bBuyEnd && bSellEnd {
 			break
 		}
 	}

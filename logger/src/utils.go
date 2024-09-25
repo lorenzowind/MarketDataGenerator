@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -147,6 +148,15 @@ func logFile(a_strPath, a_strMessage string) error {
 }
 
 func getFullTimestamp() string {
-	dtNow := time.Now()
-	return fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d.%03d", dtNow.Day(), dtNow.Month(), dtNow.Year(), dtNow.Hour(), dtNow.Minute(), dtNow.Second(), dtNow.UnixMilli()/1e10)
+	var (
+		dtNow time.Time
+		sMs   float64
+	)
+	dtNow = time.Now()
+
+	// Calcula milissegundos
+	sMs = float64(dtNow.UnixMilli()) / 1e3
+	sMs = (sMs - math.Floor(sMs)) * 1e3
+
+	return fmt.Sprintf("%02d-%02d-%d %02d:%02d:%02d.%.0f", dtNow.Day(), dtNow.Month(), dtNow.Year(), dtNow.Hour(), dtNow.Minute(), dtNow.Second(), sMs)
 }

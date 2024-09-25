@@ -269,11 +269,8 @@ func printListTrades(a_lstData list.List) {
 			TradeData = Temp.Value.(TradeDataType)
 			// Loga os dados de negocio
 			printTradeData(TradeData)
-			// Verifica se chegou no ultimo item
+			// Obtem o proximo item
 			Temp = Temp.Next()
-			if Temp == a_lstData.Front() {
-				break
-			}
 		}
 	}
 }
@@ -316,11 +313,8 @@ func printListOffers(a_lstData list.List) {
 			OfferData = Temp.Value.(OfferDataType)
 			// Loga os dados da oferta
 			printOfferData(OfferData)
-			// Verifica se chegou no ultimo item
+			// Obtem o proximo item
 			Temp = Temp.Next()
-			if Temp == a_lstData.Front() {
-				break
-			}
 		}
 	}
 }
