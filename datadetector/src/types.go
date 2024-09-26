@@ -66,6 +66,7 @@ type BookPriceType struct {
 type BookOfferType struct {
 	sPrice        float64
 	nQuantity     int
+	nPrimaryID    int
 	nSecondaryID  int
 	nGenerationID int
 	strAccount    string
