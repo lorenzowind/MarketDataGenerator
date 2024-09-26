@@ -205,7 +205,11 @@ func validateTimestampString(a_strTimestamp string) (time.Time, error) {
 		a_strTimestamp = a_strTimestamp[:len(c_strCustomTimestampLayout)]
 	}
 
-	dtDate, err = time.Parse(c_strCustomTimestampLayout, a_strTimestamp)
+	if strings.Contains(a_strTimestamp, "T") {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout, a_strTimestamp)
+	} else {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout2, a_strTimestamp)
+	}
 	return dtDate, err
 }
 
@@ -223,10 +227,12 @@ func validateFloatString(a_strValue string) (float64, error) {
 		err    error
 		sValue float64
 	)
+	a_strValue = strings.Replace(a_strValue, ",", ".", -1)
 	sValue, err = strconv.ParseFloat(a_strValue, 64)
 	return sValue, err
 }
 
+//lint:ignore U1000 Ignore unused function
 func checkIfHasSameDate(a_dtLeft, a_dtRight time.Time) bool {
 	return a_dtLeft.Format(time.DateOnly) == a_dtRight.Format(time.DateOnly)
 }

@@ -101,8 +101,8 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		c_strMethodName = "detector.startTradeRunForAllTickers"
 	)
 	var (
-		err          error
-		TradeRunInfo TradeRunInfoType
+		//err          error
+		//TradeRunInfo TradeRunInfoType
 		FilesInfo    FilesInfoType
 		arrFilesInfo []FilesInfoType
 		WaitGroup    sync.WaitGroup
@@ -111,48 +111,48 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 
 	// Verifica se deve ser aplicado paralelismo
 	if a_bParallelRun {
-		TradeRunInfo, err = readTradeRunInput(false)
-		if err == nil {
-			logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+		//TradeRunInfo, err = readTradeRunInput(false)
+		//if err == nil {
+		//logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
-			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
-			arrFilesInfo = getAllTickersFiles(TradeRunInfo.dtTickerDate)
+		// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+		arrFilesInfo = getAllTickersFiles()
 
-			// Seta o numero de goroutines a serem executadas
-			WaitGroup.Add(len(arrFilesInfo))
-			logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
+		// Seta o numero de goroutines a serem executadas
+		WaitGroup.Add(len(arrFilesInfo))
+		logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
 
-			if len(arrFilesInfo) > 0 {
-				// Itera sobre tickers disponiveis e processa cada um
-				for _, FilesInfo = range arrFilesInfo {
-					// Inicia enriquecimento em paralelo com goroutines
-					go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
-				}
-			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+		if len(arrFilesInfo) > 0 {
+			// Itera sobre tickers disponiveis e processa cada um
+			for _, FilesInfo = range arrFilesInfo {
+				// Inicia enriquecimento em paralelo com goroutines
+				go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
 			}
-
-			// Espera as goroutines finalizarem
-			WaitGroup.Wait()
+		} else {
+			logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
 		}
+
+		// Espera as goroutines finalizarem
+		WaitGroup.Wait()
+		//}
 	} else {
-		TradeRunInfo, err = readTradeRunInput(false)
-		if err == nil {
-			logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+		//TradeRunInfo, err = readTradeRunInput(false)
+		//if err == nil {
+		//	logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
-			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
-			arrFilesInfo = getAllTickersFiles(TradeRunInfo.dtTickerDate)
+		// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+		arrFilesInfo = getAllTickersFiles()
 
-			if len(arrFilesInfo) > 0 {
-				// Itera sobre tickers disponiveis e processa cada um
-				for _, FilesInfo = range arrFilesInfo {
-					// Inicia enriquecimento
-					runUniqueTicker(a_bParallelRun, FilesInfo, nil)
-				}
-			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+		if len(arrFilesInfo) > 0 {
+			// Itera sobre tickers disponiveis e processa cada um
+			for _, FilesInfo = range arrFilesInfo {
+				// Inicia enriquecimento
+				runUniqueTicker(a_bParallelRun, FilesInfo, nil)
 			}
+		} else {
+			logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
 		}
+		//}
 	}
 
 	logger.Log(m_strLogFile, c_strMethodName, "End")
@@ -175,18 +175,18 @@ func processTradeData(a_FilesInfo FilesInfoType) {
 		TickerData TickerDataType
 		DataInfo   DataInfoType
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 
 	// 1 - Carrega os dados a partir dos arquivos e armazena tudo em memoria
 	TickerData = loadTickerData(a_FilesInfo)
-	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+TickerData.FilesInfo.TradeRunInfo.strTickerName+" : Trades="+strconv.Itoa(TickerData.lstTrade.Len())+" : Buy="+strconv.Itoa(TickerData.lstBuy.Len())+" : Sell="+strconv.Itoa(TickerData.lstSell.Len()))
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+TickerData.FilesInfo.TradeRunInfo.strTickerName+" : Buy="+strconv.Itoa(TickerData.lstBuy.Len())+" : Sell="+strconv.Itoa(TickerData.lstSell.Len()))
 
 	// 2 - Inicia o processamento dos dados (um por um)
 	processEvents(TickerData, &DataInfo)
-	logger.Log(m_strLogFile, c_strMethodName, "Ticker events processed successfully : strTicker="+TickerData.FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker events processed successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 
 	// 3 - Exporta resultados da detecção
 	exportResults(TickerData)
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 }

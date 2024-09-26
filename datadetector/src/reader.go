@@ -71,7 +71,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	return FilesInfo, err
 }
 
-func getAllTickersFiles(a_dtTickerDate time.Time) []FilesInfoType {
+func getAllTickersFiles() []FilesInfoType {
 	const (
 		c_strMethodName = "reader.getAllTickersFiles"
 	)
@@ -151,6 +151,7 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	return TickerData
 }
 
+//lint:ignore U1000 Ignore unused function
 func loadTradeDataFromFile(a_strPath, a_strTicker string) list.List {
 	const (
 		c_strMethodName           = "reader.loadTradeDataFromFile"

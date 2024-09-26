@@ -3,7 +3,6 @@ package src
 import (
 	"container/list"
 	logger "marketmanipulationdetector/logger/src"
-	"strconv"
 )
 
 func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
@@ -18,7 +17,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 		OfferData OfferDataType
 		EventInfo EventInfoType
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 
 	NextBuy = a_TickerData.lstBuy.Front()
 	NextSell = a_TickerData.lstSell.Front()
@@ -50,7 +49,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 					EventInfo.bSellEventsEnd = true
 				}
 			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
+				//logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
 			}
 		} else if NextBuy != nil && !EventInfo.bBuyEventsEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
@@ -74,7 +73,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 			}
 		} else {
 			EventInfo.bProcessEvent = false
-			logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
+			//logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
 		}
 		// Processa evento da oferta de compra ou venda
 		if EventInfo.bProcessEvent {
@@ -86,7 +85,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 		}
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 }
 
 func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
@@ -237,6 +236,7 @@ func processEventCreation(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a
 
 func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
 	const (
+		//lint:ignore U1000 Ignore unused function
 		c_strMethodName = "manager.processEventCancel"
 	)
 	var (
@@ -269,8 +269,8 @@ func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_b
 	}
 
 	if !bRemoved {
-		logger.LogError(m_strLogFile, c_strMethodName, "Offer not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID))
-		printOfferData(a_OfferData)
+		//logger.LogError(m_strLogFile, c_strMethodName, "Offer not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID))
+		//printOfferData(a_OfferData)
 	} else {
 		if a_bBuyEvent {
 			lstData = &a_DataInfo.lstBuyBookPrice
@@ -299,8 +299,8 @@ func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_b
 		}
 
 		if !bRemoved {
-			logger.LogError(m_strLogFile, c_strMethodName, "Price not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID)+" : sPrice="+strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64))
-			printOfferData(a_OfferData)
+			//logger.LogError(m_strLogFile, c_strMethodName, "Price not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID)+" : sPrice="+strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64))
+			//printOfferData(a_OfferData)
 		}
 	}
 }

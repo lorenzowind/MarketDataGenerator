@@ -9,6 +9,7 @@ type TradeOperationType byte
 type OfferOperationType byte
 
 const (
+	//lint:ignore U1000 Ignore unused function
 	tropBuy     TradeOperationType = 'C' // operacao de compra
 	tropSell                       = 'V' // operacao de venda
 	tropUnknown                    = iota
@@ -38,9 +39,10 @@ type FilesInfoType struct {
 
 type TickerDataType struct {
 	FilesInfo FilesInfoType
-	lstTrade  list.List // doubly linked list de dados de trade
-	lstBuy    list.List // doubly linked list de dados de ofertas de compra
-	lstSell   list.List // doubly linked list de dados de ofertas de venda
+	//lint:ignore U1000 Ignore unused function
+	lstTrade list.List // doubly linked list de dados de trade
+	lstBuy   list.List // doubly linked list de dados de ofertas de compra
+	lstSell  list.List // doubly linked list de dados de ofertas de venda
 }
 
 type EventInfoType struct {
