@@ -179,10 +179,11 @@ func processTradeData(a_FilesInfo FilesInfoType) {
 
 	// 1 - Carrega os dados a partir dos arquivos e armazena tudo em memoria
 	TickerData = loadTickerData(a_FilesInfo)
-	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : Trades="+strconv.Itoa(TickerData.lstTrade.Len())+" : Buy="+strconv.Itoa(TickerData.lstBuy.Len())+" : Sell="+strconv.Itoa(TickerData.lstSell.Len()))
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+TickerData.FilesInfo.TradeRunInfo.strTickerName+" : Trades="+strconv.Itoa(TickerData.lstTrade.Len())+" : Buy="+strconv.Itoa(TickerData.lstBuy.Len())+" : Sell="+strconv.Itoa(TickerData.lstSell.Len()))
 
 	// 2 - Inicia o processamento dos dados (um por um)
 	processEvents(TickerData, &DataInfo)
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker events processed successfully : strTicker="+TickerData.FilesInfo.TradeRunInfo.strTickerName)
 
 	// 3 - Exporta resultados da detecção
 	exportResults(TickerData)

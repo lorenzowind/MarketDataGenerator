@@ -108,7 +108,8 @@ func getAllTickersFiles(a_dtTickerDate time.Time) []FilesInfoType {
 				dtTickerDate, err = validateDateString(arrFileInfo[0])
 				if err == nil {
 					// So verifica se tem a mesma data do que foi passado via parametro e nao foi adicionado ainda
-					if checkIfHasSameDate(dtTickerDate, a_dtTickerDate) && !checkIfContains(arrFileInfo[1], arrTickersInfo) {
+					// if checkIfHasSameDate(dtTickerDate, a_dtTickerDate) && !checkIfContains(arrFileInfo[1], arrTickersInfo) {
+					if !checkIfContains(arrFileInfo[1], arrTickersInfo) {
 						// So verifica se segue as regras de existencia dos arquivos (compra, venda e negocio)
 						TradeRunInfo = TradeRunInfoType{
 							strTickerName: arrFileInfo[1],
@@ -132,9 +133,9 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 		TickerData TickerDataType
 	)
 	// Carrega dados do arquivo de trade
-	if a_FilesInfo.strTradePath != "" {
-		TickerData.lstTrade = loadTradeDataFromFile(a_FilesInfo.strTradePath, a_FilesInfo.TradeRunInfo.strTickerName)
-	}
+	//if a_FilesInfo.strTradePath != "" {
+	//	TickerData.lstTrade = loadTradeDataFromFile(a_FilesInfo.strTradePath, a_FilesInfo.TradeRunInfo.strTickerName)
+	//}
 
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
@@ -379,7 +380,7 @@ func loadOfferDataFromFile(a_strPath, a_strTicker string) list.List {
 	}
 
 	reader = csv.NewReader(file)
-	reader.Comma = '|'
+	reader.Comma = ';'
 
 	arrFullRecords, err = reader.ReadAll()
 	if err != nil {
