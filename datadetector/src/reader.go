@@ -139,12 +139,12 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
-		TickerData.lstBuy = loadOfferDataFromFile(a_FilesInfo.strBuyPath, a_FilesInfo.TradeRunInfo.strTickerName)
+		TickerData.lstBuy = loadOfferDataFromFile(a_FilesInfo.strBuyPath)
 	}
 
 	// Carrega dados do arquivo de venda
 	if a_FilesInfo.strSellPath != "" {
-		TickerData.lstSell = loadOfferDataFromFile(a_FilesInfo.strSellPath, a_FilesInfo.TradeRunInfo.strTickerName)
+		TickerData.lstSell = loadOfferDataFromFile(a_FilesInfo.strSellPath)
 	}
 
 	TickerData.FilesInfo = a_FilesInfo
@@ -348,7 +348,7 @@ func getPriceFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	return sPrice
 }
 
-func loadOfferDataFromFile(a_strPath, a_strTicker string) list.List {
+func loadOfferDataFromFile(a_strPath string) list.List {
 	const (
 		c_strMethodName         = "reader.loadOfferDataFromFile"
 		c_nOperationIndex       = 0
@@ -397,10 +397,10 @@ func loadOfferDataFromFile(a_strPath, a_strTicker string) list.List {
 			continue
 		}
 		// Verifica nome do ticker
-		if arrRecord[c_nTickerIndex] != a_strTicker {
-			logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker : "+arrRecord[c_nTickerIndex])
-			continue
-		}
+		//if arrRecord[c_nTickerIndex] != a_strTicker {
+		//	logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker : "+arrRecord[c_nTickerIndex])
+		//	continue
+		//}
 		// Verifica natureza da operacao
 		OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
 		// Verifica timestamp da oferta

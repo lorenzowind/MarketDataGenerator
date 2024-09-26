@@ -2,6 +2,7 @@ package src
 
 import (
 	logger "marketmanipulationdetector/logger/src"
+	"runtime"
 	"strconv"
 	"sync"
 )
@@ -111,6 +112,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 
 	// Verifica se deve ser aplicado paralelismo
 	if a_bParallelRun {
+		runtime.GOMAXPROCS(3)
 		//TradeRunInfo, err = readTradeRunInput(false)
 		//if err == nil {
 		//logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
