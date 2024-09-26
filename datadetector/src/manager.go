@@ -3,6 +3,7 @@ package src
 import (
 	"container/list"
 	logger "marketmanipulationdetector/logger/src"
+	"strconv"
 )
 
 func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
@@ -30,7 +31,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 			BuyData = NextBuy.Value.(OfferDataType)
 			SellData = NextSell.Value.(OfferDataType)
 			// Verifica ID de geracao para verificar qual evento ocorreu primeiro
-			if BuyData.nGenerationID < SellData.nGenerationID {
+			if BuyData.nGenerationID < SellData.nGenerationID || (BuyData.nGenerationID == SellData.nGenerationID && checkIfHasSameDate(BuyData.dtTime, a_TickerData.FilesInfo.TradeRunInfo.dtTickerDate)) {
 				OfferData = BuyData
 				// Especifica que eh um evento de compra
 				EventInfo.bBuyEvent = true
@@ -39,7 +40,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 				if NextBuy == nil {
 					EventInfo.bBuyEventsEnd = true
 				}
-			} else if SellData.nGenerationID < BuyData.nGenerationID {
+			} else if SellData.nGenerationID < BuyData.nGenerationID || (BuyData.nGenerationID == SellData.nGenerationID && checkIfHasSameDate(SellData.dtTime, a_TickerData.FilesInfo.TradeRunInfo.dtTickerDate)) {
 				OfferData = SellData
 				// Especifica que eh um evento de venda
 				EventInfo.bBuyEvent = false
@@ -49,7 +50,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 					EventInfo.bSellEventsEnd = true
 				}
 			} else {
-				//logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
+				logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
 			}
 		} else if NextBuy != nil && !EventInfo.bBuyEventsEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
@@ -73,10 +74,11 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 			}
 		} else {
 			EventInfo.bProcessEvent = false
-			//logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
+			logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
 		}
 		// Processa evento da oferta de compra ou venda
 		if EventInfo.bProcessEvent {
+			printOfferData(OfferData)
 			processOffer(a_DataInfo, OfferData, EventInfo.bBuyEvent)
 		}
 		// Condicao de parada -> os eventos foram processados
