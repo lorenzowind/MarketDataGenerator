@@ -3,6 +3,7 @@ package src
 import (
 	logger "marketmanipulationdetector/logger/src"
 	"strconv"
+	"sync"
 )
 
 var (
@@ -51,7 +52,7 @@ func startMenu() {
 
 		if validateMainMenuOption(nOption) {
 			if nOption == 1 {
-				startTradeRunForUniqueTicker(false)
+				startTradeRunForUniqueTicker()
 			} else if nOption == 2 {
 				startTradeRunForAllTickers(false)
 			} else if nOption == 3 {
@@ -67,7 +68,7 @@ func startMenu() {
 	logger.Log(m_strLogFile, c_strMethodName, "End")
 }
 
-func startTradeRunForUniqueTicker(a_bParallelRun bool) {
+func startTradeRunForUniqueTicker() {
 	const (
 		c_strMethodName = "detector.startTradeRunForUniqueTicker"
 	)
@@ -78,22 +79,17 @@ func startTradeRunForUniqueTicker(a_bParallelRun bool) {
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
-	// Verifica se deve ser aplicado paralelismo
-	if a_bParallelRun {
-		logger.Log(m_strLogFile, c_strMethodName, "Not implemented yet")
-	} else {
-		TradeRunInfo, err = readTradeRunInput(true)
-		if err == nil {
-			logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+	TradeRunInfo, err = readTradeRunInput(true)
+	if err == nil {
+		logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
-			FilesInfo, err = getUniqueTickerFiles(TradeRunInfo)
-			// Verifica se arquivos (compra, venda e negocio) existem conforme ticker e data informado
-			if err == nil {
-				// Inicia enriquecimento
-				runUniqueTicker(a_bParallelRun, FilesInfo)
-			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Ticker file not found")
-			}
+		FilesInfo, err = getUniqueTickerFiles(TradeRunInfo)
+		// Verifica se arquivos (compra, venda e negocio) existem conforme ticker e data informado
+		if err == nil {
+			// Inicia enriquecimento
+			runUniqueTicker(false, FilesInfo, nil)
+		} else {
+			logger.LogError(m_strLogFile, c_strMethodName, "Ticker file not found")
 		}
 	}
 
@@ -109,12 +105,36 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		TradeRunInfo TradeRunInfoType
 		FilesInfo    FilesInfoType
 		arrFilesInfo []FilesInfoType
+		WaitGroup    sync.WaitGroup
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
 	// Verifica se deve ser aplicado paralelismo
 	if a_bParallelRun {
-		logger.Log(m_strLogFile, c_strMethodName, "Not implemented yet")
+		TradeRunInfo, err = readTradeRunInput(false)
+		if err == nil {
+			logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+
+			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+			arrFilesInfo = getAllTickersFiles(TradeRunInfo.dtTickerDate)
+
+			// Seta o numero de goroutines a serem executadas
+			WaitGroup.Add(len(arrFilesInfo))
+			logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
+
+			if len(arrFilesInfo) > 0 {
+				// Itera sobre tickers disponiveis e processa cada um
+				for _, FilesInfo = range arrFilesInfo {
+					// Inicia enriquecimento em paralelo com goroutines
+					go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
+				}
+			} else {
+				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+			}
+
+			// Espera as goroutines finalizarem
+			WaitGroup.Wait()
+		}
 	} else {
 		TradeRunInfo, err = readTradeRunInput(false)
 		if err == nil {
@@ -127,7 +147,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 				// Itera sobre tickers disponiveis e processa cada um
 				for _, FilesInfo = range arrFilesInfo {
 					// Inicia enriquecimento
-					runUniqueTicker(a_bParallelRun, FilesInfo)
+					runUniqueTicker(a_bParallelRun, FilesInfo, nil)
 				}
 			} else {
 				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
@@ -138,14 +158,12 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 	logger.Log(m_strLogFile, c_strMethodName, "End")
 }
 
-func runUniqueTicker(a_bParallelRun bool, a_FilesInfo FilesInfoType) {
-	const (
-		c_strMethodName = "detector.runUniqueTicker"
-	)
+func runUniqueTicker(a_bParallelRun bool, a_FilesInfo FilesInfoType, a_WaitGroup *sync.WaitGroup) {
+	processTradeData(a_FilesInfo)
+
+	// Sinaliza o WaitGroup que a routine finalizou
 	if a_bParallelRun {
-		logger.Log(m_strLogFile, c_strMethodName, "Not implemented yet")
-	} else {
-		processTradeData(a_FilesInfo)
+		defer a_WaitGroup.Done()
 	}
 }
 
