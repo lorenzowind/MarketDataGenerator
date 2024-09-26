@@ -1,0 +1,185 @@
+26-09-2024 15:15:05.812 : detector.Start : Begin
+26-09-2024 15:15:05.812 : detector.startMenu : Begin
+26-09-2024 15:15:05.812 : utils.printMainMenuOptions : 
+
+	0 - Exit
+	1 - Run unique sequentially
+	2 - Run all sequentially
+	3 - Run all with parallelism between tickers
+	4 - [IN ANALYSIS] Run unique with parallelism between blocks
+	5 - [IN ANALYSIS] Run all with parallelism between blocks
+	6 - [IN ANALYSIS] Run all with full parallelism
+
+26-09-2024 15:15:05.812 : utils.printMainMenuOptions : Write an option on terminal
+26-09-2024 15:15:12.45 : utils.getOption : Read option successfully : nResult=3
+26-09-2024 15:15:12.46 : utils.validateMainMenuOption : Valid option
+26-09-2024 15:15:12.46 : detector.startTradeRunForAllTickers : Begin
+26-09-2024 15:15:12.49 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_LOX23_TRADE.csv
+26-09-2024 15:15:12.49 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_LOX23_BUY.csv
+26-09-2024 15:15:12.49 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_LOX23_SELL.csv
+26-09-2024 15:15:12.50 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MELI34_TRADE.csv
+26-09-2024 15:15:12.50 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MELI34_BUY.csv
+26-09-2024 15:15:12.50 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MELI34_SELL.csv
+26-09-2024 15:15:12.50 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MOE34_TRADE.csv
+26-09-2024 15:15:12.51 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MOE34_BUY.csv
+26-09-2024 15:15:12.51 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_MOE34_SELL.csv
+26-09-2024 15:15:12.51 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_NUM34_TRADE.csv
+26-09-2024 15:15:12.51 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_NUM34_BUY.csv
+26-09-2024 15:15:12.52 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_NUM34_SELL.csv
+26-09-2024 15:15:12.52 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OEL34_TRADE.csv
+26-09-2024 15:15:12.52 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OEL34_BUY.csv
+26-09-2024 15:15:12.52 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OEL34_SELL.csv
+26-09-2024 15:15:12.53 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OXS23_TRADE.csv
+26-09-2024 15:15:12.53 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OXS23_BUY.csv
+26-09-2024 15:15:12.53 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_OXS23_SELL.csv
+26-09-2024 15:15:12.54 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_WSPZ23_TRADE.csv
+26-09-2024 15:15:12.54 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_WSPZ23_BUY.csv
+26-09-2024 15:15:12.54 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_WSPZ23_SELL.csv
+26-09-2024 15:15:12.54 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_XSP23_TRADE.csv
+26-09-2024 15:15:12.54 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_XSP23_BUY.csv
+26-09-2024 15:15:12.55 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-01_XSP23_SELL.csv
+26-09-2024 15:15:12.55 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_AIT3_TRADE.csv
+26-09-2024 15:15:12.55 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_AIT3_BUY.csv
+26-09-2024 15:15:12.55 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_AIT3_SELL.csv
+26-09-2024 15:15:12.56 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_MON3_TRADE.csv
+26-09-2024 15:15:12.56 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_MON3_BUY.csv
+26-09-2024 15:15:12.57 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_MON3_SELL.csv
+26-09-2024 15:15:12.57 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_NAI3_TRADE.csv
+26-09-2024 15:15:12.57 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_NAI3_BUY.csv
+26-09-2024 15:15:12.58 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_NAI3_SELL.csv
+26-09-2024 15:15:12.58 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_VITT3_TRADE.csv
+26-09-2024 15:15:12.58 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_VITT3_BUY.csv
+26-09-2024 15:15:12.58 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-09_VITT3_SELL.csv
+26-09-2024 15:15:12.59 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_NSS31_TRADE.csv
+26-09-2024 15:15:12.59 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_NSS31_BUY.csv
+26-09-2024 15:15:12.59 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_NSS31_SELL.csv
+26-09-2024 15:15:12.59 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SPB31_TRADE.csv
+26-09-2024 15:15:12.60 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SPB31_BUY.csv
+26-09-2024 15:15:12.60 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SPB31_SELL.csv
+26-09-2024 15:15:12.60 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SSP31_TRADE.csv
+26-09-2024 15:15:12.60 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SSP31_BUY.csv
+26-09-2024 15:15:12.61 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_SSP31_SELL.csv
+26-09-2024 15:15:12.61 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_XPBR31_TRADE.csv
+26-09-2024 15:15:12.61 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_XPBR31_BUY.csv
+26-09-2024 15:15:12.62 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2023-11-20_XPBR31_SELL.csv
+26-09-2024 15:15:12.62 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BBI3_TRADE.csv
+26-09-2024 15:15:12.62 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BBI3_BUY.csv
+26-09-2024 15:15:12.63 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BBI3_SELL.csv
+26-09-2024 15:15:12.64 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BIV3_TRADE.csv
+26-09-2024 15:15:12.64 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BIV3_BUY.csv
+26-09-2024 15:15:12.64 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_BIV3_SELL.csv
+26-09-2024 15:15:12.64 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_PBB3_TRADE.csv
+26-09-2024 15:15:12.65 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_PBB3_BUY.csv
+26-09-2024 15:15:12.65 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_PBB3_SELL.csv
+26-09-2024 15:15:12.66 : reader.getUniqueTickerFiles : Trade file found : strTradePath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_VIVA3_TRADE.csv
+26-09-2024 15:15:12.66 : reader.getUniqueTickerFiles : Buy file found : strBuyPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_VIVA3_BUY.csv
+26-09-2024 15:15:12.66 : reader.getUniqueTickerFiles : Sell file found : strSellPath=C:\Users\acarnetti\Downloads\MarketManipulationDetector-main\MarketManipulationDetector-main\datadetector/data/input/2024-06-25_VIVA3_SELL.csv
+26-09-2024 15:15:12.66 : detector.startTradeRunForAllTickers : Added numbers of routines to be executed : arrFilesInfo=20
+26-09-2024 15:15:12.67 : detector.processTradeData : Begin : strTicker=VIVA3
+26-09-2024 15:15:12.67 : detector.processTradeData : Begin : strTicker=LOX23
+26-09-2024 15:15:12.67 : detector.processTradeData : Begin : strTicker=NUM34
+26-09-2024 15:15:12.67 : detector.processTradeData : Begin : strTicker=OEL34
+26-09-2024 15:15:12.68 : detector.processTradeData : Begin : strTicker=MELI34
+26-09-2024 15:15:12.68 : detector.processTradeData : Begin : strTicker=MOE34
+26-09-2024 15:15:12.69 : detector.processTradeData : Begin : strTicker=OXS23
+26-09-2024 15:15:12.71 : detector.processTradeData : Begin : strTicker=XSP23
+26-09-2024 15:15:12.73 : detector.processTradeData : Begin : strTicker=NSS31
+26-09-2024 15:15:12.81 : detector.processTradeData : Begin : strTicker=AIT3
+26-09-2024 15:15:12.87 : detector.processTradeData : Begin : strTicker=NAI3
+26-09-2024 15:15:12.92 : detector.processTradeData : Begin : strTicker=MON3
+26-09-2024 15:15:12.115 : detector.processTradeData : Begin : strTicker=VITT3
+26-09-2024 15:15:12.144 : detector.processTradeData : Ticker data loaded successfully : strTicker=AIT3 : Buy=14749 : Sell=14416
+26-09-2024 15:15:12.145 : manager.processEvents : Begin : strTicker=AIT3
+26-09-2024 15:15:12.152 : detector.processTradeData : Begin : strTicker=SPB31
+26-09-2024 15:15:12.180 : detector.processTradeData : Ticker data loaded successfully : strTicker=NAI3 : Buy=14749 : Sell=14416
+26-09-2024 15:15:12.182 : manager.processEvents : Begin : strTicker=NAI3
+26-09-2024 15:15:12.216 : detector.processTradeData : Begin : strTicker=WSPZ23
+26-09-2024 15:15:12.226 : detector.processTradeData : Begin : strTicker=PBB3
+26-09-2024 15:15:12.242 : detector.processTradeData : Begin : strTicker=SSP31
+26-09-2024 15:15:12.269 : detector.processTradeData : Ticker data loaded successfully : strTicker=MON3 : Buy=14749 : Sell=14416
+26-09-2024 15:15:12.269 : manager.processEvents : Begin : strTicker=MON3
+26-09-2024 15:15:12.285 : detector.processTradeData : Begin : strTicker=BIV3
+26-09-2024 15:15:12.299 : detector.processTradeData : Begin : strTicker=XPBR31
+26-09-2024 15:15:12.326 : detector.processTradeData : Begin : strTicker=BBI3
+26-09-2024 15:15:12.360 : detector.processTradeData : Ticker data loaded successfully : strTicker=VITT3 : Buy=14749 : Sell=14416
+26-09-2024 15:15:12.360 : manager.processEvents : Begin : strTicker=VITT3
+26-09-2024 15:15:12.536 : manager.processEvents : End : strTicker=NAI3
+26-09-2024 15:15:12.536 : detector.processTradeData : Ticker events processed successfully : strTicker=NAI3
+26-09-2024 15:15:12.537 : detector.processTradeData : End : strTicker=NAI3
+26-09-2024 15:15:12.710 : manager.processEvents : End : strTicker=AIT3
+26-09-2024 15:15:12.711 : detector.processTradeData : Ticker events processed successfully : strTicker=AIT3
+26-09-2024 15:15:12.711 : detector.processTradeData : End : strTicker=AIT3
+26-09-2024 15:15:12.954 : manager.processEvents : End : strTicker=VITT3
+26-09-2024 15:15:12.954 : detector.processTradeData : Ticker events processed successfully : strTicker=VITT3
+26-09-2024 15:15:12.954 : detector.processTradeData : End : strTicker=VITT3
+26-09-2024 15:15:13.16 : manager.processEvents : End : strTicker=MON3
+26-09-2024 15:15:13.17 : detector.processTradeData : Ticker events processed successfully : strTicker=MON3
+26-09-2024 15:15:13.17 : detector.processTradeData : End : strTicker=MON3
+26-09-2024 15:15:14.77 : detector.processTradeData : Ticker data loaded successfully : strTicker=BBI3 : Buy=92720 : Sell=91701
+26-09-2024 15:15:14.136 : detector.processTradeData : Ticker data loaded successfully : strTicker=VIVA3 : Buy=92720 : Sell=91701
+26-09-2024 15:15:14.137 : manager.processEvents : Begin : strTicker=VIVA3
+26-09-2024 15:15:14.164 : manager.processEvents : Begin : strTicker=BBI3
+26-09-2024 15:15:14.230 : detector.processTradeData : Ticker data loaded successfully : strTicker=NUM34 : Buy=123398 : Sell=105597
+26-09-2024 15:15:14.233 : manager.processEvents : Begin : strTicker=NUM34
+26-09-2024 15:15:14.393 : detector.processTradeData : Ticker data loaded successfully : strTicker=PBB3 : Buy=92720 : Sell=91701
+26-09-2024 15:15:14.465 : manager.processEvents : Begin : strTicker=PBB3
+26-09-2024 15:15:14.572 : detector.processTradeData : Ticker data loaded successfully : strTicker=OEL34 : Buy=123398 : Sell=105597
+26-09-2024 15:15:14.573 : manager.processEvents : Begin : strTicker=OEL34
+26-09-2024 15:15:14.614 : detector.processTradeData : Ticker data loaded successfully : strTicker=BIV3 : Buy=92720 : Sell=91701
+26-09-2024 15:15:14.615 : manager.processEvents : Begin : strTicker=BIV3
+26-09-2024 15:15:14.778 : detector.processTradeData : Ticker data loaded successfully : strTicker=MOE34 : Buy=123398 : Sell=105597
+26-09-2024 15:15:14.779 : manager.processEvents : Begin : strTicker=MOE34
+26-09-2024 15:15:14.878 : detector.processTradeData : Ticker data loaded successfully : strTicker=MELI34 : Buy=123398 : Sell=105597
+26-09-2024 15:15:14.879 : manager.processEvents : Begin : strTicker=MELI34
+26-09-2024 15:15:17.29 : detector.processTradeData : Ticker data loaded successfully : strTicker=NSS31 : Buy=186866 : Sell=199052
+26-09-2024 15:15:17.30 : manager.processEvents : Begin : strTicker=NSS31
+26-09-2024 15:15:17.340 : detector.processTradeData : Ticker data loaded successfully : strTicker=SSP31 : Buy=186866 : Sell=199052
+26-09-2024 15:15:17.340 : manager.processEvents : Begin : strTicker=SSP31
+26-09-2024 15:15:17.620 : detector.processTradeData : Ticker data loaded successfully : strTicker=XPBR31 : Buy=186866 : Sell=199052
+26-09-2024 15:15:17.621 : manager.processEvents : Begin : strTicker=XPBR31
+26-09-2024 15:15:17.808 : detector.processTradeData : Ticker data loaded successfully : strTicker=SPB31 : Buy=186866 : Sell=199052
+26-09-2024 15:15:17.809 : manager.processEvents : Begin : strTicker=SPB31
+26-09-2024 15:15:25.698 : detector.processTradeData : Ticker data loaded successfully : strTicker=XSP23 : Buy=663989 : Sell=701481
+26-09-2024 15:15:25.700 : manager.processEvents : Begin : strTicker=XSP23
+26-09-2024 15:15:26.183 : detector.processTradeData : Ticker data loaded successfully : strTicker=LOX23 : Buy=663989 : Sell=701481
+26-09-2024 15:15:26.183 : manager.processEvents : Begin : strTicker=LOX23
+26-09-2024 15:15:26.256 : detector.processTradeData : Ticker data loaded successfully : strTicker=OXS23 : Buy=663989 : Sell=701481
+26-09-2024 15:15:26.310 : manager.processEvents : Begin : strTicker=OXS23
+26-09-2024 15:15:26.520 : detector.processTradeData : Ticker data loaded successfully : strTicker=WSPZ23 : Buy=663989 : Sell=701481
+26-09-2024 15:15:26.521 : manager.processEvents : Begin : strTicker=WSPZ23
+26-09-2024 15:15:58.967 : manager.processEvents : End : strTicker=VIVA3
+26-09-2024 15:15:58.967 : detector.processTradeData : Ticker events processed successfully : strTicker=VIVA3
+26-09-2024 15:15:58.967 : detector.processTradeData : End : strTicker=VIVA3
+26-09-2024 15:15:59.4 : manager.processEvents : End : strTicker=BBI3
+26-09-2024 15:15:59.4 : detector.processTradeData : Ticker events processed successfully : strTicker=BBI3
+26-09-2024 15:15:59.4 : detector.processTradeData : End : strTicker=BBI3
+26-09-2024 15:15:59.418 : manager.processEvents : End : strTicker=BIV3
+26-09-2024 15:15:59.428 : detector.processTradeData : Ticker events processed successfully : strTicker=BIV3
+26-09-2024 15:15:59.429 : detector.processTradeData : End : strTicker=BIV3
+26-09-2024 15:15:59.491 : manager.processEvents : End : strTicker=PBB3
+26-09-2024 15:15:59.491 : detector.processTradeData : Ticker events processed successfully : strTicker=PBB3
+26-09-2024 15:15:59.491 : detector.processTradeData : End : strTicker=PBB3
+26-09-2024 15:16:27.482 : manager.processEvents : End : strTicker=MELI34
+26-09-2024 15:16:27.489 : detector.processTradeData : Ticker events processed successfully : strTicker=MELI34
+26-09-2024 15:16:27.489 : detector.processTradeData : End : strTicker=MELI34
+26-09-2024 15:16:27.815 : manager.processEvents : End : strTicker=NUM34
+26-09-2024 15:16:27.815 : detector.processTradeData : Ticker events processed successfully : strTicker=NUM34
+26-09-2024 15:16:27.815 : detector.processTradeData : End : strTicker=NUM34
+26-09-2024 15:16:28.510 : manager.processEvents : End : strTicker=OEL34
+26-09-2024 15:16:28.513 : detector.processTradeData : Ticker events processed successfully : strTicker=OEL34
+26-09-2024 15:16:28.513 : detector.processTradeData : End : strTicker=OEL34
+26-09-2024 15:16:29.63 : manager.processEvents : End : strTicker=MOE34
+26-09-2024 15:16:29.63 : detector.processTradeData : Ticker events processed successfully : strTicker=MOE34
+26-09-2024 15:16:29.66 : detector.processTradeData : End : strTicker=MOE34
+26-09-2024 15:17:43.570 : manager.processEvents : End : strTicker=SSP31
+26-09-2024 15:17:43.570 : detector.processTradeData : Ticker events processed successfully : strTicker=SSP31
+26-09-2024 15:17:43.570 : detector.processTradeData : End : strTicker=SSP31
+26-09-2024 15:17:43.581 : manager.processEvents : End : strTicker=XPBR31
+26-09-2024 15:17:43.581 : detector.processTradeData : Ticker events processed successfully : strTicker=XPBR31
+26-09-2024 15:17:43.581 : detector.processTradeData : End : strTicker=XPBR31
+26-09-2024 15:17:43.581 : manager.processEvents : End : strTicker=NSS31
+26-09-2024 15:17:43.581 : detector.processTradeData : Ticker events processed successfully : strTicker=NSS31
+26-09-2024 15:17:43.591 : detector.processTradeData : End : strTicker=NSS31
+26-09-2024 15:17:44.547 : manager.processEvents : End : strTicker=SPB31
+26-09-2024 15:17:44.547 : detector.processTradeData : Ticker events processed successfully : strTicker=SPB31
+26-09-2024 15:17:44.547 : detector.processTradeData : End : strTicker=SPB31
