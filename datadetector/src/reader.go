@@ -21,22 +21,12 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	var (
 		err          error
 		strInputPath string
-		strTradePath string
 		strBuyPath   string
 		strSellPath  string
 		bFileExists  bool
 		FilesInfo    FilesInfoType
 	)
 	strInputPath = getInputPath() + "/"
-
-	strTradePath = strInputPath + fmt.Sprintf(c_strTradeFile, a_TradeRunInfo.dtTickerDate.Year(), a_TradeRunInfo.dtTickerDate.Month(), a_TradeRunInfo.dtTickerDate.Day(), a_TradeRunInfo.strTickerName)
-	bFileExists = checkFileExists(strTradePath)
-
-	if bFileExists {
-		logger.Log(m_strLogFile, c_strMethodName, "Trade file found : strTradePath="+strTradePath)
-	} else {
-		strTradePath = ""
-	}
 
 	strBuyPath = strInputPath + fmt.Sprintf(c_strBuyFile, a_TradeRunInfo.dtTickerDate.Year(), a_TradeRunInfo.dtTickerDate.Month(), a_TradeRunInfo.dtTickerDate.Day(), a_TradeRunInfo.strTickerName)
 	bFileExists = checkFileExists(strBuyPath)
@@ -57,10 +47,9 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	}
 
 	// Existe os 3 arquivos (compra, venda e negocio) ou existe pelo menos o de compra ou venda
-	if (strTradePath != "" && strBuyPath != "" && strSellPath != "") || (strTradePath == "" && (strBuyPath != "" || strSellPath != "")) {
+	if strBuyPath != "" || strSellPath != "" {
 		FilesInfo = FilesInfoType{
 			TradeRunInfo: a_TradeRunInfo,
-			strTradePath: strTradePath,
 			strBuyPath:   strBuyPath,
 			strSellPath:  strSellPath,
 		}
@@ -108,7 +97,6 @@ func getAllTickersFiles() []FilesInfoType {
 				dtTickerDate, err = validateDateString(arrFileInfo[0])
 				if err == nil {
 					// So verifica se tem a mesma data do que foi passado via parametro e nao foi adicionado ainda
-					// if checkIfHasSameDate(dtTickerDate, a_dtTickerDate) && !checkIfContains(arrFileInfo[1], arrTickersInfo) {
 					if !checkIfContains(arrFileInfo[1], arrTickersInfo) {
 						// So verifica se segue as regras de existencia dos arquivos (compra, venda e negocio)
 						TradeRunInfo = TradeRunInfoType{
@@ -132,10 +120,6 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	var (
 		TickerData TickerDataType
 	)
-	// Carrega dados do arquivo de trade
-	//if a_FilesInfo.strTradePath != "" {
-	//	TickerData.lstTrade = loadTradeDataFromFile(a_FilesInfo.strTradePath, a_FilesInfo.TradeRunInfo.strTickerName)
-	//}
 
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
@@ -151,21 +135,22 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	return TickerData
 }
 
-//lint:ignore U1000 Ignore unused function
-func loadTradeDataFromFile(a_strPath, a_strTicker string) list.List {
+func loadOfferDataFromFile(a_strPath string) list.List {
 	const (
-		c_strMethodName           = "reader.loadTradeDataFromFile"
-		c_nOperationIndex         = 0
-		c_nTickerIndex            = 1
-		c_nTimeIndex              = 2
-		c_nOfferGenerationIDIndex = 3
-		c_nAccountIndex           = 4
-		c_nIDIndex                = 5
-		c_nOfferPrimaryIDIndex    = 6
-		c_nOfferSecondaryIDIndex  = 7
-		c_nQuantityIndex          = 8
-		c_nPriceIndex             = 9
-		c_nLastIndex              = 9
+		c_strMethodName         = "reader.loadOfferDataFromFile"
+		c_nOperationIndex       = 0
+		c_nTickerIndex          = 1
+		c_nTimeIndex            = 2
+		c_nGenerationIDIndex    = 3
+		c_nAccountIndex         = 4
+		c_nTradeIDIndex         = 5
+		c_nPrimaryIDIndex       = 6
+		c_nSecondaryIDIndex     = 7
+		c_nCurrentQuantityIndex = 8
+		c_nTradeQuantityIndex   = 9
+		c_nTotalQuantityIndex   = 10
+		c_nPriceIndex           = 11
+		c_nLastIndex            = 11
 	)
 	var (
 		err            error
@@ -174,7 +159,7 @@ func loadTradeDataFromFile(a_strPath, a_strTicker string) list.List {
 		arrFullRecords [][]string
 		file           *os.File
 		reader         *csv.Reader
-		TradeData      TradeDataType
+		OfferData      OfferDataType
 	)
 	file, err = os.Open(a_strPath)
 	if err != nil {
@@ -183,7 +168,7 @@ func loadTradeDataFromFile(a_strPath, a_strTicker string) list.List {
 	}
 
 	reader = csv.NewReader(file)
-	reader.Comma = '|'
+	reader.Comma = ';'
 
 	arrFullRecords, err = reader.ReadAll()
 	if err != nil {
@@ -198,36 +183,56 @@ func loadTradeDataFromFile(a_strPath, a_strTicker string) list.List {
 			logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
 			continue
 		}
-		// Verifica nome do ticker
-		if arrRecord[c_nTickerIndex] != a_strTicker {
-			logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker : "+arrRecord[c_nTickerIndex])
-			continue
-		}
 		// Verifica natureza da operacao
-		TradeData.chOperation = getTradeOperationFromFile(arrRecord, c_nOperationIndex)
-		// Verifica timestamp do negocio
-		TradeData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
+		OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
+		// Verifica timestamp da oferta
+		OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
 		// Verifica numero de geracao da oferta
-		TradeData.nOfferGenerationID = getOfferGenerationFromFile(arrRecord, c_nOfferGenerationIDIndex)
+		OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
 		// Verifica conta
-		TradeData.strAccount = arrRecord[c_nAccountIndex]
-		// Verifica numero do negocio
-		TradeData.nID = getTradeIDFromFile(arrRecord, c_nIDIndex)
-		// Verifica numero primario da oferta relacionada
-		TradeData.nOfferPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nOfferPrimaryIDIndex)
-		// Verifica numero secundario da oferta relacionada
-		TradeData.nOfferSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nOfferSecondaryIDIndex)
-		// Verifica quantidade
-		TradeData.nQuantity = getTradeQuantityFromFile(arrRecord, c_nQuantityIndex)
+		OfferData.strAccount = arrRecord[c_nAccountIndex]
+		// Verifica numero do negocio relacionado
+		OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
+		// Verifica numero primario da oferta
+		OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
+		// Verifica numero secundario da oferta
+		OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
+		// Verifica quantidade restante
+		OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
+		// Verifica quantidade negociada ate o momento
+		OfferData.nTradeQuantity = getTradeQuantityFromFile(arrRecord, c_nTradeQuantityIndex)
+		// Verifica quantidade total
+		OfferData.nTotalQuantity = getTotalQuantityFromFile(arrRecord, c_nTotalQuantityIndex)
 		// Verifica preco
-		TradeData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
+		OfferData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
 
-		lstData.PushBack(TradeData)
+		lstData.PushBack(OfferData)
 	}
 
 	defer file.Close()
 
 	return lstData
+}
+
+func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperationType {
+	const (
+		c_strMethodName = "reader.getOfferOperationFromFile"
+	)
+	if a_arrRecord[a_nIndex][0] == '0' {
+		return ofopCreation
+	} else if a_arrRecord[a_nIndex][0] == '4' {
+		return ofopCancel
+	} else if a_arrRecord[a_nIndex][0] == '5' {
+		return ofopEdit
+	} else if a_arrRecord[a_nIndex][0] == 'F' {
+		return ofopTrade
+	} else if a_arrRecord[a_nIndex][0] == 'C' {
+		return ofopExpired
+	} else if a_arrRecord[a_nIndex][0] == 'D' {
+		return ofopReafirmed
+	}
+	logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
+	return ofopUnknown
 }
 
 func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
@@ -243,19 +248,6 @@ func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
 		logger.LogError(m_strLogFile, c_strMethodName, "Invalid timestamp : "+err.Error())
 	}
 	return dtTime
-}
-
-func getTradeOperationFromFile(a_arrRecord []string, a_nIndex int) TradeOperationType {
-	const (
-		c_strMethodName = "reader.getTradeOperationFromFile"
-	)
-	if a_arrRecord[a_nIndex][0] == 'C' {
-		return tropBuy
-	} else if a_arrRecord[a_nIndex][0] == 'V' {
-		return tropSell
-	}
-	logger.LogError(m_strLogFile, c_strMethodName, "Invalid trade operation type : "+a_arrRecord[a_nIndex])
-	return tropUnknown
 }
 
 func getOfferGenerationFromFile(a_arrRecord []string, a_nIndex int) int {
@@ -346,111 +338,6 @@ func getPriceFromFile(a_arrRecord []string, a_nIndex int) float64 {
 		logger.LogError(m_strLogFile, c_strMethodName, "Invalid price : "+err.Error())
 	}
 	return sPrice
-}
-
-func loadOfferDataFromFile(a_strPath string) list.List {
-	const (
-		c_strMethodName         = "reader.loadOfferDataFromFile"
-		c_nOperationIndex       = 0
-		c_nTickerIndex          = 1
-		c_nTimeIndex            = 2
-		c_nGenerationIDIndex    = 3
-		c_nAccountIndex         = 4
-		c_nTradeIDIndex         = 5
-		c_nPrimaryIDIndex       = 6
-		c_nSecondaryIDIndex     = 7
-		c_nCurrentQuantityIndex = 8
-		c_nTradeQuantityIndex   = 9
-		c_nTotalQuantityIndex   = 10
-		c_nPriceIndex           = 11
-		c_nLastIndex            = 11
-	)
-	var (
-		err            error
-		lstData        list.List
-		arrRecord      []string
-		arrFullRecords [][]string
-		file           *os.File
-		reader         *csv.Reader
-		OfferData      OfferDataType
-	)
-	file, err = os.Open(a_strPath)
-	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
-		return lstData
-	}
-
-	reader = csv.NewReader(file)
-	reader.Comma = ';'
-
-	arrFullRecords, err = reader.ReadAll()
-	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
-		return lstData
-	}
-
-	// Inicia da linha 1 (pula o header)
-	for _, arrRecord = range arrFullRecords[1:] {
-		// Verifica tamanho da linha
-		if len(arrRecord) != c_nLastIndex+1 {
-			logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
-			continue
-		}
-		// Verifica nome do ticker
-		//if arrRecord[c_nTickerIndex] != a_strTicker {
-		//	logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker : "+arrRecord[c_nTickerIndex])
-		//	continue
-		//}
-		// Verifica natureza da operacao
-		OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
-		// Verifica timestamp da oferta
-		OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
-		// Verifica numero de geracao da oferta
-		OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
-		// Verifica conta
-		OfferData.strAccount = arrRecord[c_nAccountIndex]
-		// Verifica numero do negocio relacionado
-		OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
-		// Verifica numero primario da oferta
-		OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
-		// Verifica numero secundario da oferta
-		OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
-		// Verifica quantidade restante
-		OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
-		// Verifica quantidade negociada ate o momento
-		OfferData.nTradeQuantity = getTradeQuantityFromFile(arrRecord, c_nTradeQuantityIndex)
-		// Verifica quantidade total
-		OfferData.nTotalQuantity = getTotalQuantityFromFile(arrRecord, c_nTotalQuantityIndex)
-		// Verifica preco
-		OfferData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
-
-		lstData.PushBack(OfferData)
-	}
-
-	defer file.Close()
-
-	return lstData
-}
-
-func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperationType {
-	const (
-		c_strMethodName = "reader.getOfferOperationFromFile"
-	)
-	if a_arrRecord[a_nIndex][0] == '0' {
-		return ofopCreation
-	} else if a_arrRecord[a_nIndex][0] == '4' {
-		return ofopCancel
-	} else if a_arrRecord[a_nIndex][0] == '5' {
-		return ofopEdit
-	} else if a_arrRecord[a_nIndex][0] == 'F' {
-		return ofopTrade
-	} else if a_arrRecord[a_nIndex][0] == 'C' {
-		return ofopExpired
-	} else if a_arrRecord[a_nIndex][0] == 'D' {
-		return ofopReafirmed
-	}
-	logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
-	return ofopUnknown
 }
 
 func getCurrentQuantityFromFile(a_arrRecord []string, a_nIndex int) int {

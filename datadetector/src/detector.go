@@ -49,7 +49,7 @@ func startMenu() {
 
 	for {
 		printMainMenuOptions()
-		nOption = getOption()
+		nOption = getIntegerFromInput()
 
 		if validateMainMenuOption(nOption) {
 			if nOption == 1 {
@@ -80,7 +80,7 @@ func startTradeRunForUniqueTicker() {
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
-	TradeRunInfo, err = readTradeRunInput(true)
+	TradeRunInfo, err = readTradeRunInput()
 	if err == nil {
 		logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
@@ -102,46 +102,42 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		c_strMethodName = "detector.startTradeRunForAllTickers"
 	)
 	var (
-		//err          error
-		//TradeRunInfo TradeRunInfoType
-		FilesInfo    FilesInfoType
-		arrFilesInfo []FilesInfoType
-		WaitGroup    sync.WaitGroup
+		err               error
+		InfoForAllTickers InfoForAllTickersType
+		FilesInfo         FilesInfoType
+		arrFilesInfo      []FilesInfoType
+		WaitGroup         sync.WaitGroup
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin")
 
 	// Verifica se deve ser aplicado paralelismo
 	if a_bParallelRun {
-		runtime.GOMAXPROCS(3)
-		//TradeRunInfo, err = readTradeRunInput(false)
-		//if err == nil {
-		//logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+		InfoForAllTickers, err = readInputRunForAllTickers()
+		if err == nil {
+			logger.Log(m_strLogFile, c_strMethodName, "nProcessors="+strconv.Itoa(InfoForAllTickers.nProcessors))
+			runtime.GOMAXPROCS(InfoForAllTickers.nProcessors)
 
-		// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
-		arrFilesInfo = getAllTickersFiles()
+			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+			arrFilesInfo = getAllTickersFiles()
 
-		// Seta o numero de goroutines a serem executadas
-		WaitGroup.Add(len(arrFilesInfo))
-		logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
+			// Seta o numero de goroutines a serem executadas
+			WaitGroup.Add(len(arrFilesInfo))
+			logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
 
-		if len(arrFilesInfo) > 0 {
-			// Itera sobre tickers disponiveis e processa cada um
-			for _, FilesInfo = range arrFilesInfo {
-				// Inicia enriquecimento em paralelo com goroutines
-				go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
+			if len(arrFilesInfo) > 0 {
+				// Itera sobre tickers disponiveis e processa cada um
+				for _, FilesInfo = range arrFilesInfo {
+					// Inicia enriquecimento em paralelo com goroutines
+					go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
+				}
+			} else {
+				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
 			}
-		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+
+			// Espera as goroutines finalizarem
+			WaitGroup.Wait()
 		}
-
-		// Espera as goroutines finalizarem
-		WaitGroup.Wait()
-		//}
 	} else {
-		//TradeRunInfo, err = readTradeRunInput(false)
-		//if err == nil {
-		//	logger.Log(m_strLogFile, c_strMethodName, "dtTickerDate="+TradeRunInfo.dtTickerDate.String())
-
 		// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
 		arrFilesInfo = getAllTickersFiles()
 
@@ -154,7 +150,6 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		} else {
 			logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
 		}
-		//}
 	}
 
 	logger.Log(m_strLogFile, c_strMethodName, "End")

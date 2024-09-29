@@ -236,10 +236,6 @@ func processEventCreation(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a
 }
 
 func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
-	const (
-		//lint:ignore U1000 Ignore unused function
-		c_strMethodName = "manager.processEventCancel"
-	)
 	var (
 		BookOffer    BookOfferType
 		NewBookPrice BookPriceType
@@ -269,17 +265,13 @@ func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_b
 		}
 	}
 
-	if !bRemoved {
-		//logger.LogError(m_strLogFile, c_strMethodName, "Offer not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID))
-		//printOfferData(a_OfferData)
-	} else {
+	if bRemoved {
 		if a_bBuyEvent {
 			lstData = &a_DataInfo.lstBuyBookPrice
 		} else {
 			lstData = &a_DataInfo.lstSellBookPrice
 		}
 
-		bRemoved = false
 		Temp = lstData.Front()
 		if Temp != nil {
 			for Temp != nil {
@@ -292,16 +284,10 @@ func processEventCancel(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_b
 						lstData.InsertAfter(NewBookPrice, Temp)
 					}
 					lstData.Remove(Temp)
-					bRemoved = true
 					break
 				}
 				Temp = Temp.Next()
 			}
-		}
-
-		if !bRemoved {
-			//logger.LogError(m_strLogFile, c_strMethodName, "Price not found : nGenerationID="+strconv.Itoa(a_OfferData.nGenerationID)+" : sPrice="+strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64))
-			//printOfferData(a_OfferData)
 		}
 	}
 }
@@ -483,7 +469,7 @@ func processEventEdit(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBu
 				} else {
 					TempAux = Temp.Next()
 					if TempAux != nil {
-						BookPriceAux = Temp.Value.(BookPriceType)
+						BookPriceAux = TempAux.Value.(BookPriceType)
 						if (BookPriceAux.sPrice > NewBookPrice.sPrice && a_bBuyEvent) || (BookPriceAux.sPrice < NewBookPrice.sPrice && !a_bBuyEvent) {
 							// 5 - Inserido entre grupos, seguindo a ordem crescente do preco
 							lstData.InsertAfter(NewBookPrice, Temp)

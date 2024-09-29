@@ -5,15 +5,7 @@ import (
 	"time"
 )
 
-type TradeOperationType byte
 type OfferOperationType byte
-
-const (
-	//lint:ignore U1000 Ignore unused function
-	tropBuy     TradeOperationType = 'C' // operacao de compra
-	tropSell                       = 'V' // operacao de venda
-	tropUnknown                    = iota
-)
 
 const (
 	ofopCreation  OfferOperationType = '0' // evento de criacao da oferta
@@ -30,19 +22,20 @@ type TradeRunInfoType struct {
 	dtTickerDate  time.Time
 }
 
+type InfoForAllTickersType struct {
+	nProcessors int
+}
+
 type FilesInfoType struct {
 	TradeRunInfo TradeRunInfoType
-	strTradePath string
 	strBuyPath   string
 	strSellPath  string
 }
 
 type TickerDataType struct {
 	FilesInfo FilesInfoType
-	//lint:ignore U1000 Ignore unused function
-	lstTrade list.List // doubly linked list de dados de trade
-	lstBuy   list.List // doubly linked list de dados de ofertas de compra
-	lstSell  list.List // doubly linked list de dados de ofertas de venda
+	lstBuy    list.List // doubly linked list de dados de ofertas de compra
+	lstSell   list.List // doubly linked list de dados de ofertas de venda
 }
 
 type EventInfoType struct {
@@ -72,18 +65,6 @@ type BookOfferType struct {
 	nSecondaryID  int
 	nGenerationID int
 	strAccount    string
-}
-
-type TradeDataType struct {
-	chOperation        TradeOperationType
-	dtTime             time.Time
-	strAccount         string
-	nID                int
-	nQuantity          int
-	sPrice             float64
-	nOfferGenerationID int
-	nOfferPrimaryID    int
-	nOfferSecondaryID  int
 }
 
 type OfferDataType struct {

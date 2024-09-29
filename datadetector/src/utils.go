@@ -68,9 +68,9 @@ func validateMainMenuOption(a_nOption int) bool {
 	return true
 }
 
-func getOption() int {
+func getIntegerFromInput() int {
 	const (
-		c_strMethodName = "utils.getOption"
+		c_strMethodName = "utils.getIntegerFromInput"
 	)
 	var (
 		nResult     int
@@ -100,7 +100,7 @@ func getOption() int {
 		return -1
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read option successfully : nResult="+strconv.Itoa(nResult))
+	logger.Log(m_strLogFile, c_strMethodName, "Read integer successfully : nResult="+strconv.Itoa(nResult))
 
 	return nResult
 }
@@ -131,7 +131,7 @@ func getStringFromInput() string {
 	return strRead
 }
 
-func readTradeRunInput(a_bReadTickerName bool) (TradeRunInfoType, error) {
+func readTradeRunInput() (TradeRunInfoType, error) {
 	const (
 		c_strMethodName = "utils.readTradeRunInput"
 	)
@@ -140,20 +140,40 @@ func readTradeRunInput(a_bReadTickerName bool) (TradeRunInfoType, error) {
 		strTickerDate string
 	)
 
-	if a_bReadTickerName {
-		logger.Log(m_strLogFile, c_strMethodName, "Write the ticker name on terminal")
-		strTickerName = getStringFromInput()
-	} else {
-		strTickerName = ""
-	}
+	logger.Log(m_strLogFile, c_strMethodName, "Write the ticker name on terminal")
+	strTickerName = getStringFromInput()
 
 	logger.Log(m_strLogFile, c_strMethodName, "Write the trade date on terminal (format yyyy-mm-dd)")
 	strTickerDate = getStringFromInput()
 
-	return validateTradeRunInput(strTickerName, strTickerDate, a_bReadTickerName)
+	return validateTradeRunInput(strTickerName, strTickerDate)
 }
 
-func validateTradeRunInput(a_strTickerName, a_strTickerDate string, a_bReadTickerName bool) (TradeRunInfoType, error) {
+func readInputRunForAllTickers() (InfoForAllTickersType, error) {
+	const (
+		c_strMethodName = "utils.readInputRunForAllTickers"
+	)
+	var (
+		nProcessors int
+	)
+	logger.Log(m_strLogFile, c_strMethodName, "Write the number of processors on terminal")
+	nProcessors = getIntegerFromInput()
+
+	return validateInputRunForAllTickers(nProcessors)
+}
+
+func validateInputRunForAllTickers(a_nProcessors int) (InfoForAllTickersType, error) {
+	// Valida numero de processadores informado no terminal
+	if a_nProcessors <= 0 {
+		return InfoForAllTickersType{}, errors.New("info for all tickers validation failure")
+	}
+
+	return InfoForAllTickersType{
+		nProcessors: a_nProcessors,
+	}, nil
+}
+
+func validateTradeRunInput(a_strTickerName, a_strTickerDate string) (TradeRunInfoType, error) {
 	const (
 		c_strMethodName = "utils.validateTradeRunInput"
 	)
@@ -163,11 +183,9 @@ func validateTradeRunInput(a_strTickerName, a_strTickerDate string, a_bReadTicke
 	)
 
 	// Valida ticker informado no terminal
-	if a_bReadTickerName {
-		if a_strTickerName == "" || strings.Contains(a_strTickerName, " ") {
-			logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker name")
-			return TradeRunInfoType{}, errors.New("ticker name validation failure")
-		}
+	if a_strTickerName == "" || strings.Contains(a_strTickerName, " ") {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker name")
+		return TradeRunInfoType{}, errors.New("ticker name validation failure")
 	}
 
 	// Valida data informada no terminal e converte para um tipo data
@@ -255,50 +273,6 @@ func checkFileExists(a_strFullPath string) bool {
 	)
 	_, err = os.Stat(a_strFullPath)
 	return err == nil
-}
-
-//lint:ignore U1000 Ignore unused function
-func printListTrades(a_lstData list.List) {
-	const (
-		c_strMethodName = "utils.printListTrades"
-	)
-	var (
-		TradeData TradeDataType
-		Temp      *list.Element
-	)
-	if a_lstData.Front() == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "List of trades is empty")
-	} else {
-		Temp = a_lstData.Front()
-		// Itera sobre cada item da lista encadeada
-		for Temp != nil {
-			TradeData = Temp.Value.(TradeDataType)
-			// Loga os dados de negocio
-			printTradeData(TradeData)
-			// Obtem o proximo item
-			Temp = Temp.Next()
-		}
-	}
-}
-
-func printTradeData(a_TradeData TradeDataType) {
-	const (
-		c_strMethodName = "utils.printTradeData"
-	)
-	var (
-		strResult string
-	)
-	strResult = "chOperation=" + string(a_TradeData.chOperation)
-	strResult = strResult + " : dtTime=" + a_TradeData.dtTime.String()
-	strResult = strResult + " : nID=" + strconv.Itoa(a_TradeData.nID)
-	strResult = strResult + " : nOfferGenerationID=" + strconv.Itoa(a_TradeData.nOfferGenerationID)
-	strResult = strResult + " : nOfferPrimaryID=" + strconv.Itoa(a_TradeData.nOfferPrimaryID)
-	strResult = strResult + " : nOfferSecondaryID=" + strconv.Itoa(a_TradeData.nOfferSecondaryID)
-	strResult = strResult + " : strAccount=" + a_TradeData.strAccount
-	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_TradeData.nQuantity)
-	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_TradeData.sPrice, 'f', -1, 64)
-
-	logger.Log(m_strLogFile, c_strMethodName, strResult)
 }
 
 //lint:ignore U1000 Ignore unused function
