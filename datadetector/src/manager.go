@@ -79,6 +79,7 @@ func processEvents(a_TickerData TickerDataType, a_DataInfo *DataInfoType) {
 		// Processa evento da oferta de compra ou venda
 		if EventInfo.bProcessEvent {
 			processOffer(a_DataInfo, OfferData, EventInfo.bBuyEvent)
+			processDetection(a_DataInfo, OfferData, EventInfo.bBuyEvent)
 		}
 		// Condicao de parada -> os eventos foram processados
 		if EventInfo.bBuyEventsEnd && EventInfo.bSellEventsEnd {
@@ -564,8 +565,4 @@ func processEventTrade(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bB
 			}
 		}
 	}
-}
-
-func exportResults(a_TickerData TickerDataType) {
-
 }

@@ -33,9 +33,17 @@ type FilesInfoType struct {
 }
 
 type TickerDataType struct {
-	FilesInfo FilesInfoType
-	lstBuy    list.List // doubly linked list de dados de ofertas de compra
-	lstSell   list.List // doubly linked list de dados de ofertas de venda
+	FilesInfo    FilesInfoType
+	lstBuy       list.List // doubly linked list de dados de ofertas de compra
+	lstSell      list.List // doubly linked list de dados de ofertas de venda
+	AuxiliarData AuxiliarDataType
+}
+
+type AuxiliarDataType struct {
+	hshFullTrade         map[int]*FullTradeType
+	hshOffersByPrimary   map[int][]*OfferDataType
+	hshOffersBySecondary map[int][]*OfferDataType
+	hshTradesByAccount   map[string][]*FullTradeType
 }
 
 type EventInfoType struct {
@@ -79,4 +87,9 @@ type OfferDataType struct {
 	nTradeQuantity   int
 	nTotalQuantity   int
 	sPrice           float64
+}
+
+type FullTradeType struct {
+	BuyOfferTrade  *OfferDataType
+	SellOfferTrade *OfferDataType
 }

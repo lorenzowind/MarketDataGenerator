@@ -120,22 +120,26 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	var (
 		TickerData TickerDataType
 	)
+	TickerData.AuxiliarData.hshFullTrade = make(map[int]*FullTradeType)
+	TickerData.AuxiliarData.hshOffersByPrimary = make(map[int][]*OfferDataType)
+	TickerData.AuxiliarData.hshOffersBySecondary = make(map[int][]*OfferDataType)
+	TickerData.AuxiliarData.hshTradesByAccount = make(map[string][]*FullTradeType)
 
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
-		TickerData.lstBuy = loadOfferDataFromFile(a_FilesInfo.strBuyPath)
+		loadOfferDataFromFile(a_FilesInfo.strBuyPath, &TickerData, true)
 	}
 
 	// Carrega dados do arquivo de venda
 	if a_FilesInfo.strSellPath != "" {
-		TickerData.lstSell = loadOfferDataFromFile(a_FilesInfo.strSellPath)
+		loadOfferDataFromFile(a_FilesInfo.strSellPath, &TickerData, true)
 	}
 
 	TickerData.FilesInfo = a_FilesInfo
 	return TickerData
 }
 
-func loadOfferDataFromFile(a_strPath string) list.List {
+func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy bool) {
 	const (
 		c_strMethodName         = "reader.loadOfferDataFromFile"
 		c_nOperationIndex       = 0
@@ -154,7 +158,7 @@ func loadOfferDataFromFile(a_strPath string) list.List {
 	)
 	var (
 		err            error
-		lstData        list.List
+		lstData        *list.List
 		arrRecord      []string
 		arrFullRecords [][]string
 		file           *os.File
@@ -162,56 +166,79 @@ func loadOfferDataFromFile(a_strPath string) list.List {
 		OfferData      OfferDataType
 	)
 	file, err = os.Open(a_strPath)
-	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
-		return lstData
-	}
+	if err == nil {
 
-	reader = csv.NewReader(file)
-	reader.Comma = ';'
+		reader = csv.NewReader(file)
+		reader.Comma = ';'
 
-	arrFullRecords, err = reader.ReadAll()
-	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
-		return lstData
-	}
+		arrFullRecords, err = reader.ReadAll()
+		if err == nil {
+			if bBuy {
+				lstData = &a_TickerData.lstBuy
+			} else {
+				lstData = &a_TickerData.lstSell
+			}
 
-	// Inicia da linha 1 (pula o header)
-	for _, arrRecord = range arrFullRecords[1:] {
-		// Verifica tamanho da linha
-		if len(arrRecord) != c_nLastIndex+1 {
-			logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
-			continue
+			// Inicia da linha 1 (pula o header)
+			for _, arrRecord = range arrFullRecords[1:] {
+				// Verifica tamanho da linha
+				if len(arrRecord) != c_nLastIndex+1 {
+					logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					continue
+				}
+				// Verifica natureza da operacao
+				OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
+				// Verifica timestamp da oferta
+				OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
+				// Verifica numero de geracao da oferta
+				OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
+				// Verifica conta
+				OfferData.strAccount = arrRecord[c_nAccountIndex]
+				// Verifica numero do negocio relacionado
+				OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
+				// Verifica numero primario da oferta
+				OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
+				// Verifica numero secundario da oferta
+				OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
+				// Verifica quantidade restante
+				OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
+				// Verifica quantidade negociada ate o momento
+				OfferData.nTradeQuantity = getTradeQuantityFromFile(arrRecord, c_nTradeQuantityIndex)
+				// Verifica quantidade total
+				OfferData.nTotalQuantity = getTotalQuantityFromFile(arrRecord, c_nTotalQuantityIndex)
+				// Verifica preco
+				OfferData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
+
+				lstData.PushBack(OfferData)
+
+				relateOfferIntoAuxiliarData(a_TickerData, OfferData, bBuy)
+			}
+
+			defer file.Close()
+		} else {
+			logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
 		}
-		// Verifica natureza da operacao
-		OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
-		// Verifica timestamp da oferta
-		OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
-		// Verifica numero de geracao da oferta
-		OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
-		// Verifica conta
-		OfferData.strAccount = arrRecord[c_nAccountIndex]
-		// Verifica numero do negocio relacionado
-		OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
-		// Verifica numero primario da oferta
-		OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
-		// Verifica numero secundario da oferta
-		OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
-		// Verifica quantidade restante
-		OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
-		// Verifica quantidade negociada ate o momento
-		OfferData.nTradeQuantity = getTradeQuantityFromFile(arrRecord, c_nTradeQuantityIndex)
-		// Verifica quantidade total
-		OfferData.nTotalQuantity = getTotalQuantityFromFile(arrRecord, c_nTotalQuantityIndex)
-		// Verifica preco
-		OfferData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
-
-		lstData.PushBack(OfferData)
+	} else {
+		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
 	}
+}
 
-	defer file.Close()
-
-	return lstData
+func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData OfferDataType, bBuy bool) {
+	var (
+		FullTrade  *FullTradeType
+		bKeyExists bool
+	)
+	if a_OfferData.chOperation == ofopTrade {
+		FullTrade, bKeyExists = a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID]
+		if !bKeyExists {
+			a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID] = FullTrade
+		}
+		if bBuy {
+			FullTrade.BuyOfferTrade = &a_OfferData
+		} else {
+			FullTrade.SellOfferTrade = &a_OfferData
+		}
+	}
 }
 
 func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperationType {
