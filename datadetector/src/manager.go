@@ -101,7 +101,7 @@ func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEve
 	case ofopEdit:
 		processEventEdit(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopExpired:
-		processEventExpired(a_DataInfo, a_OfferData, a_bBuyEvent)
+		processEventCancel(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopReafirmed:
 		processEventReafirmed(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopTrade:
@@ -497,16 +497,73 @@ func processEventEdit(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBu
 	}
 }
 
-func processEventExpired(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
-
-}
-
 func processEventReafirmed(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
-
 }
 
 func processEventTrade(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
+	var (
+		lstData      *list.List
+		Temp         *list.Element
+		BookOffer    BookOfferType
+		NewBookOffer BookOfferType
+		BookPrice    BookPriceType
+		NewBookPrice BookPriceType
+		bRemoved     bool
+	)
+	if a_bBuyEvent {
+		lstData = &a_DataInfo.lstBuyOffers
+	} else {
+		lstData = &a_DataInfo.lstSellOffers
+	}
 
+	Temp = lstData.Front()
+	if Temp != nil {
+		for Temp != nil {
+			BookOffer = Temp.Value.(BookOfferType)
+			if BookOffer.nSecondaryID == a_OfferData.nSecondaryID {
+				NewBookOffer = BookOffer
+				NewBookOffer.nQuantity -= a_OfferData.nTradeQuantity
+				if NewBookOffer.nQuantity > 0 {
+					lstData.InsertAfter(NewBookOffer, Temp)
+				}
+				lstData.Remove(Temp)
+				bRemoved = true
+				break
+			}
+
+			Temp = Temp.Next()
+		}
+	}
+
+	if bRemoved {
+		if a_bBuyEvent {
+			lstData = &a_DataInfo.lstBuyBookPrice
+		} else {
+			lstData = &a_DataInfo.lstSellBookPrice
+		}
+
+		Temp = lstData.Front()
+		if Temp != nil {
+			for Temp != nil {
+				BookPrice = Temp.Value.(BookPriceType)
+				if BookPrice.sPrice == a_OfferData.sPrice {
+					NewBookPrice = BookPrice
+					NewBookPrice.nQuantity -= a_OfferData.nTradeQuantity
+					if a_OfferData.nCurrentQuantity == 0 {
+						NewBookPrice.nCount--
+						if NewBookPrice.nCount > 0 {
+							lstData.InsertAfter(NewBookPrice, Temp)
+						}
+					} else {
+						lstData.InsertAfter(NewBookPrice, Temp)
+					}
+					lstData.Remove(Temp)
+					break
+				}
+				Temp = Temp.Next()
+			}
+		}
+	}
 }
 
 func exportResults(a_TickerData TickerDataType) {

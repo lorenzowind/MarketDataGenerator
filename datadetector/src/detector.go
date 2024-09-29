@@ -115,6 +115,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		InfoForAllTickers, err = readInputRunForAllTickers()
 		if err == nil {
 			logger.Log(m_strLogFile, c_strMethodName, "nProcessors="+strconv.Itoa(InfoForAllTickers.nProcessors))
+			// Seta o numero de processadores a ser utilizado (worker pool)
 			runtime.GOMAXPROCS(InfoForAllTickers.nProcessors)
 
 			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
