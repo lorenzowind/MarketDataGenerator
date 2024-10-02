@@ -40,9 +40,9 @@ type TickerDataType struct {
 }
 
 type AuxiliarDataType struct {
-	hshFullTrade         map[int]*FullTradeType
 	hshOffersByPrimary   map[int][]*OfferDataType
 	hshOffersBySecondary map[int][]*OfferDataType
+	hshFullTrade         map[int]FullTradeType
 	hshTradesByAccount   map[string][]*FullTradeType
 }
 

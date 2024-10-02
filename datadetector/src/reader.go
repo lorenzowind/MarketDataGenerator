@@ -120,7 +120,7 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	var (
 		TickerData TickerDataType
 	)
-	TickerData.AuxiliarData.hshFullTrade = make(map[int]*FullTradeType)
+	TickerData.AuxiliarData.hshFullTrade = make(map[int]FullTradeType)
 	TickerData.AuxiliarData.hshOffersByPrimary = make(map[int][]*OfferDataType)
 	TickerData.AuxiliarData.hshOffersBySecondary = make(map[int][]*OfferDataType)
 	TickerData.AuxiliarData.hshTradesByAccount = make(map[string][]*FullTradeType)
@@ -225,13 +225,22 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 
 func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData OfferDataType, bBuy bool) {
 	var (
-		FullTrade  *FullTradeType
-		bKeyExists bool
+		FullTrade    FullTradeType
+		lstFullTrade []*FullTradeType
+		lstOfferData []*OfferDataType
+		bKeyExists   bool
 	)
 	if a_OfferData.chOperation == ofopTrade {
+		// Relaciona evento da oferta referente a ocorrencia de um negocio
 		FullTrade, bKeyExists = a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID]
 		if !bKeyExists {
 			a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID] = FullTrade
+			// Relaciona conta do investidor referente a um evento da oferta
+			lstFullTrade, bKeyExists = a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount]
+			if !bKeyExists {
+				a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = make([]*FullTradeType, 0)
+			}
+			a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = append(lstFullTrade, &FullTrade)
 		}
 		if bBuy {
 			FullTrade.BuyOfferTrade = &a_OfferData
@@ -239,6 +248,18 @@ func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData Offer
 			FullTrade.SellOfferTrade = &a_OfferData
 		}
 	}
+	// Relaciona ID primário do evento da oferta
+	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersByPrimary[a_OfferData.nPrimaryID]
+	if !bKeyExists {
+		lstOfferData = make([]*OfferDataType, 0)
+	}
+	a_TickerData.AuxiliarData.hshOffersByPrimary[a_OfferData.nPrimaryID] = append(lstOfferData, &a_OfferData)
+	// Relaciona ID secundário do evento da oferta
+	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersBySecondary[a_OfferData.nSecondaryID]
+	if !bKeyExists {
+		lstOfferData = make([]*OfferDataType, 0)
+	}
+	a_TickerData.AuxiliarData.hshOffersBySecondary[a_OfferData.nSecondaryID] = append(lstOfferData, &a_OfferData)
 }
 
 func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperationType {
