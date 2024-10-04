@@ -132,10 +132,10 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 
 	// Carrega dados do arquivo de venda
 	if a_FilesInfo.strSellPath != "" {
-		loadOfferDataFromFile(a_FilesInfo.strSellPath, &TickerData, true)
+		loadOfferDataFromFile(a_FilesInfo.strSellPath, &TickerData, false)
 	}
 
-	TickerData.FilesInfo = a_FilesInfo
+	TickerData.FilesInfo = &a_FilesInfo
 	return TickerData
 }
 

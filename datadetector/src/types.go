@@ -33,7 +33,7 @@ type FilesInfoType struct {
 }
 
 type TickerDataType struct {
-	FilesInfo    FilesInfoType
+	FilesInfo    *FilesInfoType
 	lstBuy       list.List // doubly linked list de dados de ofertas de compra
 	lstSell      list.List // doubly linked list de dados de ofertas de venda
 	AuxiliarData AuxiliarDataType

@@ -398,3 +398,17 @@ func printBookPrice(a_BookPrice BookPriceType) {
 
 	logger.Log(m_strLogFile, c_strMethodName, strResult)
 }
+
+func getTickerData(a_TickerData TickerDataType) string {
+	var (
+		strResult string
+	)
+	strResult = "Buy=" + strconv.Itoa(a_TickerData.lstBuy.Len())
+	strResult = strResult + " : Sell=" + strconv.Itoa(a_TickerData.lstSell.Len())
+	strResult = strResult + " : FullTrade=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshFullTrade))
+	strResult = strResult + " : OffersByPrimary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersByPrimary))
+	strResult = strResult + " : OffersBySecondary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersBySecondary))
+	strResult = strResult + " : TradesByAccount=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshTradesByAccount))
+
+	return strResult
+}
