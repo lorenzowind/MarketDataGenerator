@@ -19,12 +19,13 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 		c_strMethodName = "reader.getUniqueTickerFiles"
 	)
 	var (
-		err          error
-		strInputPath string
-		strBuyPath   string
-		strSellPath  string
-		bFileExists  bool
-		FilesInfo    FilesInfoType
+		err              error
+		strInputPath     string
+		strBuyPath       string
+		strSellPath      string
+		strBenchmarkPath string
+		bFileExists      bool
+		FilesInfo        FilesInfoType
 	)
 	strInputPath = getInputPath() + "/"
 
@@ -46,12 +47,22 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 		strSellPath = ""
 	}
 
+	strBenchmarkPath = strInputPath + c_strBenchmarksFile
+	bFileExists = checkFileExists(strBenchmarkPath)
+
+	if bFileExists {
+		logger.Log(m_strLogFile, c_strMethodName, "Benchmarks file found : strBenchmarkPath="+strBenchmarkPath)
+	} else {
+		strBenchmarkPath = ""
+	}
+
 	// Existe os 3 arquivos (compra, venda e negocio) ou existe pelo menos o de compra ou venda
 	if strBuyPath != "" || strSellPath != "" {
 		FilesInfo = FilesInfoType{
-			TradeRunInfo: a_TradeRunInfo,
-			strBuyPath:   strBuyPath,
-			strSellPath:  strSellPath,
+			TradeRunInfo:     a_TradeRunInfo,
+			strBuyPath:       strBuyPath,
+			strSellPath:      strSellPath,
+			strBenchmarkPath: strBenchmarkPath,
 		}
 	} else {
 		err = errors.New("file rules existance failed")
@@ -120,6 +131,8 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	var (
 		TickerData TickerDataType
 	)
+	TickerData.FilesInfo = &a_FilesInfo
+
 	TickerData.AuxiliarData.hshFullTrade = make(map[int]FullTradeType)
 	TickerData.AuxiliarData.hshOffersByPrimary = make(map[int][]*OfferDataType)
 	TickerData.AuxiliarData.hshOffersBySecondary = make(map[int][]*OfferDataType)
@@ -135,8 +148,72 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 		loadOfferDataFromFile(a_FilesInfo.strSellPath, &TickerData, false)
 	}
 
-	TickerData.FilesInfo = &a_FilesInfo
+	// Carrega dados de benchmark
+	if a_FilesInfo.strBenchmarkPath != "" {
+		loadBenchmarkFromFile(a_FilesInfo.strBenchmarkPath, &TickerData)
+	}
+
 	return TickerData
+}
+
+func loadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) {
+	const (
+		c_strMethodName            = "reader.loadBenchmarkFromFile"
+		c_nTickerIndex             = 0
+		c_nAvgTradeIntervalIndex   = 1
+		c_nAvgOfferSizeIndex       = 2
+		c_nSmallerSDOfferSizeIndex = 3
+		c_nBiggerSDOfferSizeIndex  = 4
+		c_nLastIndex               = 4
+	)
+	var (
+		err            error
+		arrRecord      []string
+		arrFullRecords [][]string
+		file           *os.File
+		reader         *csv.Reader
+		bFound         bool
+	)
+	file, err = os.Open(a_strPath)
+	if err == nil {
+		reader = csv.NewReader(file)
+		reader.Comma = ','
+
+		arrFullRecords, err = reader.ReadAll()
+		if err == nil {
+			bFound = false
+			// Inicia da linha 1 (pula o header)
+			for _, arrRecord = range arrFullRecords[1:] {
+				// Verifica tamanho da linha
+				if len(arrRecord) != c_nLastIndex+1 {
+					logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					continue
+				}
+				// Verifica se encontrou benchmark do ticker
+				if a_TickerData.FilesInfo.TradeRunInfo.strTickerName == arrRecord[c_nTickerIndex] {
+					// Verifica benchmark de intervalo entre negocios
+					a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval = getTimeFromFile(arrRecord, c_nAvgTradeIntervalIndex)
+					// Verifica benchmark da media da quantidade de lotes
+					a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize = getAvgOfferSizeFromFile(arrRecord, c_nAvgOfferSizeIndex)
+					// Verifica benchmark do desvio padrao da quantidade de lotes
+					a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize = getSDOfferSizeFromFile(arrRecord, c_nSmallerSDOfferSizeIndex, c_nBiggerSDOfferSizeIndex)
+
+					bFound = true
+					break
+				}
+			}
+
+			if !bFound {
+				logger.LogWarning(m_strLogFile, c_strMethodName, "Benchmark for ticker not found : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+			}
+
+			defer file.Close()
+		} else {
+			logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
+		}
+	} else {
+		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
+	}
 }
 
 func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy bool) {
@@ -167,7 +244,6 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 	)
 	file, err = os.Open(a_strPath)
 	if err == nil {
-
 		reader = csv.NewReader(file)
 		reader.Comma = ';'
 
@@ -416,4 +492,42 @@ func getTotalQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 		logger.LogError(m_strLogFile, c_strMethodName, "Invalid total quantity : "+err.Error())
 	}
 	return nTotalQuantity
+}
+
+func getAvgOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
+	const (
+		c_strMethodName = "reader.getAvgOfferSizeFromFile"
+	)
+	var (
+		err           error
+		sAvgOfferSize float64
+	)
+	sAvgOfferSize, err = validateFloatString(a_arrRecord[a_nIndex])
+	if err != nil {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size average : "+err.Error())
+	}
+	return sAvgOfferSize
+}
+
+func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBiggerIndex int) float64 {
+	const (
+		c_strMethodName = "reader.getSDOfferSizeFromFile"
+	)
+	var (
+		err                 error
+		sSmallerSDOfferSize float64
+		sBiggerSDOfferSize  float64
+	)
+	sSmallerSDOfferSize, err = validateFloatString(a_arrRecord[a_nSmallerIndex])
+	if err != nil {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		return 0
+	}
+	sBiggerSDOfferSize, err = validateFloatString(a_arrRecord[a_nBiggerIndex])
+	if err != nil {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		return 0
+	}
+
+	return (sSmallerSDOfferSize + sBiggerSDOfferSize) / 2
 }

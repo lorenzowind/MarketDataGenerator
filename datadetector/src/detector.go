@@ -180,11 +180,11 @@ func processTradeData(a_FilesInfo FilesInfoType) {
 	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName+" : "+getTickerData(TickerData))
 
 	// 2 - Inicia o processamento dos dados (um por um)
-	processEvents(TickerData, &DataInfo)
+	processEvents(&TickerData, &DataInfo)
 	logger.Log(m_strLogFile, c_strMethodName, "Ticker events processed successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 
 	// 3 - Exporta resultados da detecção
-	exportResults(TickerData)
+	exportResults(&TickerData)
 
 	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 }

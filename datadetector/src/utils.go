@@ -225,9 +225,12 @@ func validateTimestampString(a_strTimestamp string) (time.Time, error) {
 
 	if strings.Contains(a_strTimestamp, "T") {
 		dtDate, err = time.Parse(c_strCustomTimestampLayout, a_strTimestamp)
-	} else {
+	} else if strings.Contains(a_strTimestamp, " ") {
 		dtDate, err = time.Parse(c_strCustomTimestampLayout2, a_strTimestamp)
+	} else {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout3, a_strTimestamp)
 	}
+
 	return dtDate, err
 }
 
@@ -405,6 +408,9 @@ func getTickerData(a_TickerData TickerDataType) string {
 	)
 	strResult = "Buy=" + strconv.Itoa(a_TickerData.lstBuy.Len())
 	strResult = strResult + " : Sell=" + strconv.Itoa(a_TickerData.lstSell.Len())
+	strResult = strResult + " : AvgTrade=" + a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval.String()
+	strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
+	strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
 	strResult = strResult + " : FullTrade=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshFullTrade))
 	strResult = strResult + " : OffersByPrimary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersByPrimary))
 	strResult = strResult + " : OffersBySecondary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersBySecondary))

@@ -27,9 +27,10 @@ type InfoForAllTickersType struct {
 }
 
 type FilesInfoType struct {
-	TradeRunInfo TradeRunInfoType
-	strBuyPath   string
-	strSellPath  string
+	TradeRunInfo     TradeRunInfoType
+	strBuyPath       string
+	strSellPath      string
+	strBenchmarkPath string
 }
 
 type TickerDataType struct {
@@ -44,6 +45,13 @@ type AuxiliarDataType struct {
 	hshOffersBySecondary map[int][]*OfferDataType
 	hshFullTrade         map[int]FullTradeType
 	hshTradesByAccount   map[string][]*FullTradeType
+	BenchmarkData        BenchmarkDataType
+}
+
+type BenchmarkDataType struct {
+	dtAvgTradeInterval time.Time
+	sAvgOfferSize      float64
+	sSDOfferSize       float64
 }
 
 type EventInfoType struct {
