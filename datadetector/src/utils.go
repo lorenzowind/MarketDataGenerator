@@ -325,6 +325,26 @@ func printOfferData(a_OfferData OfferDataType) {
 }
 
 //lint:ignore U1000 Ignore unused function
+func getOfferData(a_OfferData OfferDataType) string {
+	var (
+		strResult string
+	)
+	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
+	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
+	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)
+	strResult = strResult + " : nSecondaryID=" + strconv.Itoa(a_OfferData.nSecondaryID)
+	strResult = strResult + " : nTradeID=" + strconv.Itoa(a_OfferData.nTradeID)
+	strResult = strResult + " : strAccount=" + a_OfferData.strAccount
+	strResult = strResult + " : nCurrentQuantity=" + strconv.Itoa(a_OfferData.nCurrentQuantity)
+	strResult = strResult + " : nTradeQuantity=" + strconv.Itoa(a_OfferData.nTradeQuantity)
+	strResult = strResult + " : nTotalQuantity=" + strconv.Itoa(a_OfferData.nTotalQuantity)
+	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64)
+
+	return strResult
+}
+
+//lint:ignore U1000 Ignore unused function
 func printListBookOffers(a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListBookOffers"
@@ -408,13 +428,19 @@ func getTickerData(a_TickerData TickerDataType) string {
 	)
 	strResult = "Buy=" + strconv.Itoa(a_TickerData.lstBuy.Len())
 	strResult = strResult + " : Sell=" + strconv.Itoa(a_TickerData.lstSell.Len())
-	strResult = strResult + " : AvgTrade=" + a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval.String()
-	strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
-	strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
 	strResult = strResult + " : FullTrade=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshFullTrade))
 	strResult = strResult + " : OffersByPrimary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersByPrimary))
 	strResult = strResult + " : OffersBySecondary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersBySecondary))
 	strResult = strResult + " : TradesByAccount=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshTradesByAccount))
+	strResult = strResult + " : HasBenchmarkData=" + strconv.FormatBool(a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData)
+
+	// So exibe valores de benchmark caso tenha o encontrado
+	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
+		strResult = strResult + " : AvgTrade=" + a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval.String()
+		strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
+		strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
+		strResult = strResult + " : ExpressiveOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sExpressiveOfferSize, 'f', -1, 64)
+	}
 
 	return strResult
 }

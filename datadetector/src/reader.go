@@ -150,15 +150,20 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 
 	// Carrega dados de benchmark
 	if a_FilesInfo.strBenchmarkPath != "" {
-		loadBenchmarkFromFile(a_FilesInfo.strBenchmarkPath, &TickerData)
+		TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData = tryLoadBenchmarkFromFile(a_FilesInfo.strBenchmarkPath, &TickerData)
+		// Verifica se conseguiu encontrar os dados de benchmark do ativo
+		if TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
+			// Calcula o valor de referencia da oferta expressiva
+			TickerData.AuxiliarData.BenchmarkData.sExpressiveOfferSize = calculateExpressiveOfferSize(&TickerData)
+		}
 	}
 
 	return TickerData
 }
 
-func loadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) {
+func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bool {
 	const (
-		c_strMethodName            = "reader.loadBenchmarkFromFile"
+		c_strMethodName            = "reader.tryLoadBenchmarkFromFile"
 		c_nTickerIndex             = 0
 		c_nAvgTradeIntervalIndex   = 1
 		c_nAvgOfferSizeIndex       = 2
@@ -174,6 +179,8 @@ func loadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) {
 		reader         *csv.Reader
 		bFound         bool
 	)
+	bFound = false
+
 	file, err = os.Open(a_strPath)
 	if err == nil {
 		reader = csv.NewReader(file)
@@ -181,7 +188,6 @@ func loadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) {
 
 		arrFullRecords, err = reader.ReadAll()
 		if err == nil {
-			bFound = false
 			// Inicia da linha 1 (pula o header)
 			for _, arrRecord = range arrFullRecords[1:] {
 				// Verifica tamanho da linha
@@ -214,6 +220,8 @@ func loadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) {
 	} else {
 		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
 	}
+
+	return bFound
 }
 
 func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy bool) {
@@ -530,4 +538,23 @@ func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBigger
 	}
 
 	return (sSmallerSDOfferSize + sBiggerSDOfferSize) / 2
+}
+
+func calculateExpressiveOfferSize(a_TickerData *TickerDataType) float64 {
+	const (
+		c_nMultiplier = 3
+	)
+	return a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize + (c_nMultiplier * a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize)
+}
+
+func getOffersByPrimaryID(a_TickerData *TickerDataType, a_nPrimaryID int) []*OfferDataType {
+	var (
+		lstOfferData []*OfferDataType
+		bKeyExists   bool
+	)
+	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersByPrimary[a_nPrimaryID]
+	if bKeyExists {
+		return lstOfferData
+	}
+	return make([]*OfferDataType, 0)
 }

@@ -11,7 +11,7 @@ const (
 
 	c_strCustomTimestampLayout  = "2006-01-02T15:04:05.999"
 	c_strCustomTimestampLayout2 = "2006-01-02 15:04:05.999"
-	c_strCustomTimestampLayout3 = "15:04:05.000"
+	c_strCustomTimestampLayout3 = "15:04:05.999"
 
 	c_strBenchmarksFile = "BENCHMARKS.csv"
 )

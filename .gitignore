@@ -30,5 +30,8 @@ go.work.sum
 # input files
 */data/input/
 
+# input bk files
+*/data/input_bk/
+
 # vsdode files
 **/.vscode/
