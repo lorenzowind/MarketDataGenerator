@@ -50,7 +50,7 @@ type AuxiliarDataType struct {
 
 type BenchmarkDataType struct {
 	bHasBenchmarkData    bool
-	dtAvgTradeInterval   time.Time
+	dtAvgTradeInterval   time.Duration
 	sAvgOfferSize        float64
 	sSDOfferSize         float64
 	sExpressiveOfferSize float64

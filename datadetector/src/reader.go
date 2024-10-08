@@ -198,7 +198,7 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 				// Verifica se encontrou benchmark do ticker
 				if a_TickerData.FilesInfo.TradeRunInfo.strTickerName == arrRecord[c_nTickerIndex] {
 					// Verifica benchmark de intervalo entre negocios
-					a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval = getTimeFromFile(arrRecord, c_nAvgTradeIntervalIndex)
+					a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval = getDurationFromFile(arrRecord, c_nAvgTradeIntervalIndex)
 					// Verifica benchmark da media da quantidade de lotes
 					a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize = getAvgOfferSizeFromFile(arrRecord, c_nAvgOfferSizeIndex)
 					// Verifica benchmark do desvio padrao da quantidade de lotes
@@ -365,6 +365,10 @@ func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperatio
 	}
 	logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
 	return ofopUnknown
+}
+
+func getDurationFromFile(a_arrRecord []string, a_nIndex int) time.Duration {
+	return getTimeFromFile(a_arrRecord, a_nIndex).Sub(time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC))
 }
 
 func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
@@ -557,4 +561,16 @@ func getOffersByPrimaryID(a_TickerData *TickerDataType, a_nPrimaryID int) []*Off
 		return lstOfferData
 	}
 	return make([]*OfferDataType, 0)
+}
+
+func getTradesByAccount(a_TickerData *TickerDataType, a_strAccount string) []*FullTradeType {
+	var (
+		lstFullTrade []*FullTradeType
+		bKeyExists   bool
+	)
+	lstFullTrade, bKeyExists = a_TickerData.AuxiliarData.hshTradesByAccount[a_strAccount]
+	if bKeyExists {
+		return lstFullTrade
+	}
+	return make([]*FullTradeType, 0)
 }
