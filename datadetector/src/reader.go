@@ -133,9 +133,10 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	)
 	TickerData.FilesInfo = &a_FilesInfo
 
-	TickerData.AuxiliarData.hshFullTrade = make(map[int]FullTradeType)
+	TickerData.AuxiliarData.hshFullTrade = make(map[int]*FullTradeType)
 	TickerData.AuxiliarData.hshOffersByPrimary = make(map[int][]*OfferDataType)
 	TickerData.AuxiliarData.hshOffersBySecondary = make(map[int][]*OfferDataType)
+	TickerData.AuxiliarData.hshTradesBySecondary = make(map[int][]*OfferDataType)
 	TickerData.AuxiliarData.hshTradesByAccount = make(map[string][]*FullTradeType)
 
 	// Carrega dados do arquivo de compra
@@ -155,6 +156,8 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 		if TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
 			// Calcula o valor de referencia da oferta expressiva
 			TickerData.AuxiliarData.BenchmarkData.sExpressiveOfferSize = calculateExpressiveOfferSize(&TickerData)
+
+			TickerData.TempData.hshTradePrice = make(map[int]TradePriceType)
 		}
 	}
 
@@ -309,7 +312,8 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 
 func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData OfferDataType, bBuy bool) {
 	var (
-		FullTrade    FullTradeType
+		FullTradeAux FullTradeType
+		FullTrade    *FullTradeType
 		lstFullTrade []*FullTradeType
 		lstOfferData []*OfferDataType
 		bKeyExists   bool
@@ -318,19 +322,30 @@ func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData Offer
 		// Relaciona evento da oferta referente a ocorrencia de um negocio
 		FullTrade, bKeyExists = a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID]
 		if !bKeyExists {
+			FullTrade = &FullTradeAux
 			a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID] = FullTrade
+
 			// Relaciona conta do investidor referente a um evento da oferta
 			lstFullTrade, bKeyExists = a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount]
 			if !bKeyExists {
-				a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = make([]*FullTradeType, 0)
+				lstFullTrade = make([]*FullTradeType, 0)
+				a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = lstFullTrade
 			}
-			a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = append(lstFullTrade, &FullTrade)
+			a_TickerData.AuxiliarData.hshTradesByAccount[a_OfferData.strAccount] = append(lstFullTrade, FullTrade)
 		}
+
 		if bBuy {
 			FullTrade.BuyOfferTrade = &a_OfferData
 		} else {
 			FullTrade.SellOfferTrade = &a_OfferData
 		}
+
+		// Relaciona ID secundário com evento de trade
+		lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshTradesBySecondary[a_OfferData.nSecondaryID]
+		if !bKeyExists {
+			lstOfferData = make([]*OfferDataType, 0)
+		}
+		a_TickerData.AuxiliarData.hshTradesBySecondary[a_OfferData.nSecondaryID] = append(lstOfferData, &a_OfferData)
 	}
 	// Relaciona ID primário do evento da oferta
 	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersByPrimary[a_OfferData.nPrimaryID]
@@ -563,6 +578,18 @@ func getOffersByPrimaryID(a_TickerData *TickerDataType, a_nPrimaryID int) []*Off
 	return make([]*OfferDataType, 0)
 }
 
+func getTradesBySecondaryID(a_TickerData *TickerDataType, a_nSecondaryID int) []*OfferDataType {
+	var (
+		lstOfferData []*OfferDataType
+		bKeyExists   bool
+	)
+	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshTradesBySecondary[a_nSecondaryID]
+	if bKeyExists {
+		return lstOfferData
+	}
+	return make([]*OfferDataType, 0)
+}
+
 func getTradesByAccount(a_TickerData *TickerDataType, a_strAccount string) []*FullTradeType {
 	var (
 		lstFullTrade []*FullTradeType
@@ -573,4 +600,31 @@ func getTradesByAccount(a_TickerData *TickerDataType, a_strAccount string) []*Fu
 		return lstFullTrade
 	}
 	return make([]*FullTradeType, 0)
+}
+
+func getTradePrice(a_TickerData *TickerDataType, a_bBuy bool, a_nTradeID int) float64 {
+	var (
+		TradePrice TradePriceType
+		bKeyExists bool
+	)
+	TradePrice, bKeyExists = a_TickerData.TempData.hshTradePrice[a_nTradeID]
+	if bKeyExists {
+		if a_bBuy {
+			return TradePrice.sTopBuyPriceLevel
+		}
+		return TradePrice.sTopSellPriceLevel
+	}
+	return 0
+}
+
+func getFullTrade(a_TickerData *TickerDataType, a_nTradeID int) *FullTradeType {
+	var (
+		FullTrade  *FullTradeType
+		bKeyExists bool
+	)
+	FullTrade, bKeyExists = a_TickerData.AuxiliarData.hshFullTrade[a_nTradeID]
+	if bKeyExists {
+		return FullTrade
+	}
+	return nil
 }

@@ -1,23 +1,28 @@
 package src
 
-import "time"
+import (
+	logger "marketmanipulationdetector/logger/src"
+	"strconv"
+	"time"
+)
+
+const (
+	c_nTopPriceLevel = 5
+)
 
 func processDetection(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
-	// Armazena estado do livro no evento de trade
-	if a_OfferData.chOperation == ofopTrade {
-		processTradePrice(a_TickerData, a_DataInfo, a_OfferData)
-	}
 	// So realiza a deteccao caso tenha encontrado os valores de benchmark
 	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
+		// Armazena estado do livro no evento de trade
+		if a_OfferData.chOperation == ofopTrade {
+			processTradePrice(a_TickerData, a_DataInfo, a_OfferData)
+		}
 		checkSpoofing(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 		checkLayering(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 	}
 }
 
 func processTradePrice(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType) {
-	const (
-		c_nTopPriceLevel = 5
-	)
 	var (
 		TradePrice TradePriceType
 		bKeyExists bool
@@ -33,16 +38,28 @@ func processTradePrice(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a
 }
 
 func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
+	const (
+		c_strMethodName = "alerts.checkSpoofing"
+	)
 	var (
 		OriginalSpoofingOffer *OfferDataType
 		OriginalSpoofingTrade *OfferDataType
+		lstSpoofingTrades     []*OfferDataType
 	)
 	OriginalSpoofingOffer = getOriginalSpoofingOffer(a_TickerData, a_OfferData)
-
 	if OriginalSpoofingOffer != nil {
-		OriginalSpoofingTrade = getOriginalSpoofingTrade(a_TickerData, a_OfferData, a_bBuyEvent, OriginalSpoofingOffer)
+		OriginalSpoofingTrade = getOriginalSpoofingTrade(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent, OriginalSpoofingOffer)
 		if OriginalSpoofingTrade != nil {
+			lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
 
+			logger.Log(m_strLogFile, c_strMethodName, "Spoofing detected")
+			logger.Log(m_strLogFile, c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
+			logger.Log(m_strLogFile, c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
+			logger.Log(m_strLogFile, c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
+			logger.Log(m_strLogFile, c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
+			for _, SpoofingTrade := range lstSpoofingTrades {
+				logger.Log(m_strLogFile, c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
+			}
 		}
 	}
 }
@@ -86,7 +103,7 @@ func getOriginalSpoofingOffer(a_TickerData *TickerDataType, a_OfferData OfferDat
 	return nil
 }
 
-func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_OfferData OfferDataType, a_bBuyEvent bool, a_OriginalSpoofingOffer *OfferDataType) *OfferDataType {
+func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool, a_OriginalSpoofingOffer *OfferDataType) *OfferDataType {
 	var (
 		AccountTrade        *OfferDataType
 		NearestAccountTrade *OfferDataType
@@ -94,6 +111,7 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_OfferData OfferDat
 		nIndex              int
 		dtTradeDiff         time.Duration
 		dtNearestTrade      time.Duration
+		sTopPriceLevel      float64
 	)
 	dtNearestTrade = 0
 	NearestAccountTrade = nil
@@ -122,17 +140,70 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_OfferData OfferDat
 		if a_OfferData.dtTime.Before(NearestAccountTrade.dtTime) {
 			// Compara o tempo entre o trade e a oferta de spoofing para verificar se esta dentro do benchmark
 			if LessOrEqualThanTradeInverval(a_TickerData, dtNearestTrade) {
+				// Verifica oferta original se esta dentro dos niveis de preco de spoofing
+				if a_bBuyEvent {
+					sTopPriceLevel = getPriceLevel(a_DataInfo, true, c_nTopPriceLevel)
+					// Lado de compra -> preco maior ou igual esta dentro dos niveis
+					if a_OriginalSpoofingOffer.sPrice < sTopPriceLevel {
+						return nil
+					}
+				} else {
+					sTopPriceLevel = getPriceLevel(a_DataInfo, false, c_nTopPriceLevel)
+					// Lado de venda -> preco menor ou igual esta dentro dos niveis
+					if a_OriginalSpoofingOffer.sPrice > sTopPriceLevel {
+						return nil
+					}
+				}
 				return NearestAccountTrade
 			}
 		} else {
 			// Compara o tempo entre o trade e a oferta expressiva para verificar se esta dentro do benchmark
 			if IsBetweenTradeInverval(a_TickerData, a_OriginalSpoofingOffer.dtTime, NearestAccountTrade.dtTime) {
+				// Verifica trade mais proximo se esta dentro dos niveis de preco de spoofing
+				if a_bBuyEvent {
+					sTopPriceLevel = getTradePrice(a_TickerData, true, NearestAccountTrade.nTradeID)
+					// Lado de compra -> preco maior ou igual esta dentro dos niveis
+					if a_OriginalSpoofingOffer.sPrice < sTopPriceLevel {
+						return nil
+					}
+				} else {
+					sTopPriceLevel = getTradePrice(a_TickerData, false, NearestAccountTrade.nTradeID)
+					// Lado de venda -> preco menor ou igual esta dentro dos niveis
+					if a_OriginalSpoofingOffer.sPrice > sTopPriceLevel {
+						return nil
+					}
+				}
 				return NearestAccountTrade
 			}
 		}
 	}
 
 	return nil
+}
+
+func getSpoofingTrades(a_TickerData *TickerDataType, a_bBuyEvent bool, a_OriginalSpoofingTrade *OfferDataType) []*OfferDataType {
+	var (
+		lstSpoofingTrades []*OfferDataType
+		TradeAux          *OfferDataType
+		lstTrades         []*OfferDataType
+		FullTrade         *FullTradeType
+	)
+	lstSpoofingTrades = make([]*OfferDataType, 0)
+
+	lstTrades = getTradesBySecondaryID(a_TickerData, a_OriginalSpoofingTrade.nSecondaryID)
+	for _, TradeAux = range lstTrades {
+		FullTrade = getFullTrade(a_TickerData, TradeAux.nTradeID)
+		if FullTrade != nil {
+			// Obtem o trade do lado oposto que foi manipulado pela oferta expressiva
+			if a_bBuyEvent {
+				lstSpoofingTrades = append(lstSpoofingTrades, FullTrade.SellOfferTrade)
+			} else {
+				lstSpoofingTrades = append(lstSpoofingTrades, FullTrade.BuyOfferTrade)
+			}
+		}
+	}
+
+	return lstSpoofingTrades
 }
 
 func checkLayering(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {

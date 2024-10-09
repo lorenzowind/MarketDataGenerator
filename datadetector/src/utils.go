@@ -431,6 +431,7 @@ func getTickerData(a_TickerData TickerDataType) string {
 	strResult = strResult + " : FullTrade=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshFullTrade))
 	strResult = strResult + " : OffersByPrimary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersByPrimary))
 	strResult = strResult + " : OffersBySecondary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshOffersBySecondary))
+	strResult = strResult + " : TradesBySecondary=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshTradesBySecondary))
 	strResult = strResult + " : TradesByAccount=" + strconv.Itoa(len(a_TickerData.AuxiliarData.hshTradesByAccount))
 	strResult = strResult + " : HasBenchmarkData=" + strconv.FormatBool(a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData)
 
