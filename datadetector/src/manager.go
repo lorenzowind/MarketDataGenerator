@@ -566,3 +566,40 @@ func processEventTrade(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bB
 		}
 	}
 }
+
+func getPriceLevel(a_DataInfo *DataInfoType, bBuy bool, a_nLevel int) float64 {
+	var (
+		lstData       *list.List
+		Temp          *list.Element
+		BookPrice     BookPriceType
+		nListSize     int
+		nCurrentLevel int
+	)
+	if bBuy {
+		lstData = &a_DataInfo.lstBuyBookPrice
+	} else {
+		lstData = &a_DataInfo.lstSellBookPrice
+	}
+
+	Temp = lstData.Front()
+	if Temp != nil {
+		nListSize = lstData.Len()
+		// Caso lista de precos seja menor que o nivel desejado, ja retorna preco da primeira posicao
+		if nListSize < a_nLevel {
+			BookPrice = Temp.Value.(BookPriceType)
+			return BookPrice.sPrice
+		}
+		nCurrentLevel = 1
+		for Temp != nil {
+			// Retorna o preco do nivel desejado
+			if nListSize-nCurrentLevel == a_nLevel {
+				BookPrice = Temp.Value.(BookPriceType)
+				return BookPrice.sPrice
+			}
+			Temp = Temp.Next()
+			nCurrentLevel++
+		}
+	}
+
+	return 0
+}

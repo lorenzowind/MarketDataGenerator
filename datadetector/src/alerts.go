@@ -3,10 +3,32 @@ package src
 import "time"
 
 func processDetection(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
+	// Armazena estado do livro no evento de trade
+	if a_OfferData.chOperation == ofopTrade {
+		processTradePrice(a_TickerData, a_DataInfo, a_OfferData)
+	}
 	// So realiza a deteccao caso tenha encontrado os valores de benchmark
 	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
 		checkSpoofing(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 		checkLayering(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
+	}
+}
+
+func processTradePrice(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType) {
+	const (
+		c_nTopPriceLevel = 5
+	)
+	var (
+		TradePrice TradePriceType
+		bKeyExists bool
+	)
+	_, bKeyExists = a_TickerData.TempData.hshTradePrice[a_OfferData.nTradeID]
+	if !bKeyExists {
+		TradePrice.dtTradeTime = a_OfferData.dtTime
+		TradePrice.sTopBuyPriceLevel = getPriceLevel(a_DataInfo, true, c_nTopPriceLevel)
+		TradePrice.sTopSellPriceLevel = getPriceLevel(a_DataInfo, false, c_nTopPriceLevel)
+
+		a_TickerData.TempData.hshTradePrice[a_OfferData.nTradeID] = TradePrice
 	}
 }
 

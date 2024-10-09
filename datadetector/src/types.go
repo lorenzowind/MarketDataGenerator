@@ -38,6 +38,7 @@ type TickerDataType struct {
 	lstBuy       list.List // doubly linked list de dados de ofertas de compra
 	lstSell      list.List // doubly linked list de dados de ofertas de venda
 	AuxiliarData AuxiliarDataType
+	TempData     TempDataType
 }
 
 type AuxiliarDataType struct {
@@ -46,6 +47,16 @@ type AuxiliarDataType struct {
 	hshFullTrade         map[int]FullTradeType
 	hshTradesByAccount   map[string][]*FullTradeType
 	BenchmarkData        BenchmarkDataType
+}
+
+type TempDataType struct {
+	hshTradePrice map[int]TradePriceType
+}
+
+type TradePriceType struct {
+	sTopBuyPriceLevel  float64
+	sTopSellPriceLevel float64
+	dtTradeTime        time.Time
 }
 
 type BenchmarkDataType struct {
