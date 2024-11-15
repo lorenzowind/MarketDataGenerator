@@ -56,7 +56,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 		strBenchmarkPath = ""
 	}
 
-	// Existe os 3 arquivos (compra, venda e negocio) ou existe pelo menos o de compra ou venda
+	// Existe os 2 arquivos (compra e venda) ou existe pelo menos o de compra ou venda, alem do arquivo de benchmarks
 	if strBuyPath != "" || strSellPath != "" {
 		FilesInfo = FilesInfoType{
 			TradeRunInfo:     a_TradeRunInfo,

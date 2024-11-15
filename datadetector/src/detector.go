@@ -85,7 +85,7 @@ func startTradeRunForUniqueTicker() {
 		logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
 		FilesInfo, err = getUniqueTickerFiles(TradeRunInfo)
-		// Verifica se arquivos (compra, venda e negocio) existem conforme ticker e data informado
+		// Verifica se arquivos (compra e venda) existem conforme ticker e data informado
 		if err == nil {
 			// Inicia enriquecimento
 			runUniqueTicker(false, FilesInfo, nil)
@@ -118,7 +118,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 			// Seta o numero de processadores a ser utilizado (worker pool)
 			runtime.GOMAXPROCS(InfoForAllTickers.nProcessors)
 
-			// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+			// Verifica se arquivos (compra e venda) existem para cada ticker conforme data informada
 			arrFilesInfo = getAllTickersFiles()
 
 			// Seta o numero de goroutines a serem executadas
@@ -139,7 +139,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 			WaitGroup.Wait()
 		}
 	} else {
-		// Verifica se arquivos (compra, venda e negocio) existem para cada ticker conforme data informada
+		// Verifica se arquivos (compra e venda) existem para cada ticker conforme data informada
 		arrFilesInfo = getAllTickersFiles()
 
 		if len(arrFilesInfo) > 0 {
