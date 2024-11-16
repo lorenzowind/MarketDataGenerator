@@ -253,7 +253,6 @@ func validateFloatString(a_strValue string) (float64, error) {
 	return sValue, err
 }
 
-//lint:ignore U1000 Ignore unused function
 func checkIfHasSameDate(a_dtLeft, a_dtRight time.Time) bool {
 	return a_dtLeft.Format(time.DateOnly) == a_dtRight.Format(time.DateOnly)
 }

@@ -73,7 +73,7 @@ func startGenerationForUniqueOffersBook() {
 
 	GenerationInfo, err = readGenerationInput()
 	if err == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+GenerationInfo.strTickerName+" : dtTickerDate="+GenerationInfo.dtTickerDate.String())
+		logger.Log(m_strLogFile, c_strMethodName, "strReferenceTickerName="+GenerationInfo.strReferenceTickerName+" : dtReferenceTickerDate="+GenerationInfo.dtReferenceTickerDate.String()+" : strTickerName="+GenerationInfo.strTickerName+" : dtTickerDate="+GenerationInfo.dtTickerDate.String())
 
 		FilesInfo, err = getReferenceOffersBook(GenerationInfo)
 		// Verifica se arquivos (compra e venda) de referencia existem conforme ticker e data informado
@@ -92,9 +92,20 @@ func generateOffersBook(a_FilesInfo FilesInfoType) {
 	const (
 		c_strMethodName = "generator.generateOffersBook"
 	)
+	var (
+		TickerData TickerDataType
+	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_FilesInfo.GenerationInfo.strTickerName)
 
-	// 1 - Gera o livro de ofertas
+	// 1 - Duplica arquivos de referência para pasta input na data e ticker escolhido
+	duplicateOffersBook(&a_FilesInfo)
+
+	// 2 - Carrega os dados a partir dos arquivos e armazena tudo em memoria (ja normalizados)
+	TickerData = loadTickerData(a_FilesInfo)
+	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.GenerationInfo.strTickerName+" : "+getTickerData(TickerData))
+
+	// 3 - Salva valores nos arquivos finais
+	saveOffersBook(TickerData)
 
 	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_FilesInfo.GenerationInfo.strTickerName)
 }

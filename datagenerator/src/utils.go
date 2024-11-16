@@ -3,6 +3,7 @@ package src
 import (
 	"bufio"
 	"errors"
+	"io"
 	logger "marketmanipulationdetector/logger/src"
 	"os"
 	"path/filepath"
@@ -142,21 +143,31 @@ func validateDateString(a_strDate string) (time.Time, error) {
 	return dtDate, err
 }
 
-func validateGenerationInput(a_strTickerName, a_strTickerDate string) (GenerationInfoType, error) {
+func validateGenerationInput(a_strReferenceTickerName, a_strReferenceTickerDate, a_strTickerName, a_strTickerDate string) (GenerationInfoType, error) {
 	const (
 		c_strMethodName = "utils.validateGenerationInput"
 	)
 	var (
-		err          error
-		dtTickerDate time.Time
+		err                   error
+		dtReferenceTickerDate time.Time
+		dtTickerDate          time.Time
 	)
-
+	// Valida ticker de referencia informado no terminal
+	if a_strReferenceTickerName == "" || strings.Contains(a_strReferenceTickerName, " ") {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid reference ticker name")
+		return GenerationInfoType{}, errors.New("reference ticker name validation failure")
+	}
+	// Valida data de referencia informada no terminal e converte para um tipo data
+	dtReferenceTickerDate, err = validateDateString(a_strReferenceTickerDate)
+	if err != nil {
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid reference ticker date : "+err.Error())
+		return GenerationInfoType{}, errors.New("reference ticker date validation failure")
+	}
 	// Valida ticker informado no terminal
 	if a_strTickerName == "" || strings.Contains(a_strTickerName, " ") {
 		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker name")
 		return GenerationInfoType{}, errors.New("ticker name validation failure")
 	}
-
 	// Valida data informada no terminal e converte para um tipo data
 	dtTickerDate, err = validateDateString(a_strTickerDate)
 	if err != nil {
@@ -165,8 +176,10 @@ func validateGenerationInput(a_strTickerName, a_strTickerDate string) (Generatio
 	}
 
 	return GenerationInfoType{
-		strTickerName: a_strTickerName,
-		dtTickerDate:  dtTickerDate,
+		strTickerName:          a_strTickerName,
+		dtTickerDate:           dtTickerDate,
+		strReferenceTickerName: a_strReferenceTickerName,
+		dtReferenceTickerDate:  dtReferenceTickerDate,
 	}, nil
 }
 
@@ -175,17 +188,25 @@ func readGenerationInput() (GenerationInfoType, error) {
 		c_strMethodName = "utils.readGenerationInput"
 	)
 	var (
-		strTickerName string
-		strTickerDate string
+		strReferenceTickerName string
+		strReferenceTickerDate string
+		strTickerName          string
+		strTickerDate          string
 	)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the ticker name on terminal")
+	logger.Log(m_strLogFile, c_strMethodName, "Write the reference ticker name on terminal")
+	strReferenceTickerName = getStringFromInput()
+
+	logger.Log(m_strLogFile, c_strMethodName, "Write the reference trade date on terminal (format yyyy-mm-dd)")
+	strReferenceTickerDate = getStringFromInput()
+
+	logger.Log(m_strLogFile, c_strMethodName, "Write the generation ticker name on terminal")
 	strTickerName = getStringFromInput()
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the trade date on terminal (format yyyy-mm-dd)")
+	logger.Log(m_strLogFile, c_strMethodName, "Write the generation trade date on terminal (format yyyy-mm-dd)")
 	strTickerDate = getStringFromInput()
 
-	return validateGenerationInput(strTickerName, strTickerDate)
+	return validateGenerationInput(strReferenceTickerName, strReferenceTickerDate, strTickerName, strTickerDate)
 }
 
 func checkFileExists(a_strFullPath string) bool {
@@ -194,4 +215,108 @@ func checkFileExists(a_strFullPath string) bool {
 	)
 	_, err = os.Stat(a_strFullPath)
 	return err == nil
+}
+
+func duplicateFile(a_strSourceFilePath, a_strDestinationFilePath string) bool {
+	var (
+		err     error
+		file    *os.File
+		fileAux *os.File
+	)
+	// Verifica se arquivo de destino existe
+	if checkFileExists(a_strDestinationFilePath) {
+		return false
+	}
+	// Abre arquivo de origem
+	file, err = os.Open(a_strSourceFilePath)
+	if err != nil {
+		return false
+	}
+	defer file.Close()
+	// Cria arquivo de destino
+	fileAux, err = os.Create(a_strDestinationFilePath)
+	if err != nil {
+		return false
+	}
+	defer fileAux.Close()
+	// Faz copia do conteudo do arquivo
+	_, err = io.Copy(fileAux, file)
+	return err == nil
+}
+
+func validateIntString(a_strValue string) (int, error) {
+	var (
+		err    error
+		nValue int
+	)
+	nValue, err = strconv.Atoi(a_strValue)
+	return nValue, err
+}
+
+func validateFloatString(a_strValue string) (float64, error) {
+	var (
+		err    error
+		sValue float64
+	)
+	a_strValue = strings.Replace(a_strValue, ",", ".", -1)
+	sValue, err = strconv.ParseFloat(a_strValue, 64)
+	return sValue, err
+}
+
+func validateTimestampString(a_strTimestamp string) (time.Time, error) {
+	var (
+		err    error
+		dtDate time.Time
+	)
+	if len(a_strTimestamp) > len(c_strCustomTimestampLayout) {
+		a_strTimestamp = a_strTimestamp[:len(c_strCustomTimestampLayout)]
+	}
+
+	if strings.Contains(a_strTimestamp, "T") {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout, a_strTimestamp)
+	} else if strings.Contains(a_strTimestamp, " ") {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout2, a_strTimestamp)
+	} else {
+		dtDate, err = time.Parse(c_strCustomTimestampLayout3, a_strTimestamp)
+	}
+
+	return dtDate, err
+}
+
+//lint:ignore U1000 Ignore unused function
+func getOfferData(a_OfferData OfferDataType) string {
+	var (
+		strResult string
+	)
+	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
+	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
+	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)
+	strResult = strResult + " : nSecondaryID=" + strconv.Itoa(a_OfferData.nSecondaryID)
+	strResult = strResult + " : nTradeID=" + strconv.Itoa(a_OfferData.nTradeID)
+	strResult = strResult + " : strAccount=" + a_OfferData.strAccount
+	strResult = strResult + " : nCurrentQuantity=" + strconv.Itoa(a_OfferData.nCurrentQuantity)
+	strResult = strResult + " : nTradeQuantity=" + strconv.Itoa(a_OfferData.nTradeQuantity)
+	strResult = strResult + " : nTotalQuantity=" + strconv.Itoa(a_OfferData.nTotalQuantity)
+	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64)
+
+	return strResult
+}
+
+func getTickerData(a_TickerData TickerDataType) string {
+	var (
+		strResult string
+	)
+	strResult = "Buy=" + strconv.Itoa(a_TickerData.lstBuy.Len())
+	strResult = strResult + " : Sell=" + strconv.Itoa(a_TickerData.lstSell.Len())
+	strResult = strResult + " : HasBenchmarkData=" + strconv.FormatBool(a_TickerData.BenchmarkData.bHasBenchmarkData)
+
+	// So exibe valores de benchmark caso tenha o encontrado
+	if a_TickerData.BenchmarkData.bHasBenchmarkData {
+		strResult = strResult + " : AvgTrade=" + a_TickerData.BenchmarkData.dtAvgTradeInterval.String()
+		strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
+		strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
+	}
+
+	return strResult
 }
