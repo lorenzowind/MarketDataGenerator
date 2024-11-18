@@ -3,7 +3,7 @@ package src
 import (
 	"bufio"
 	"errors"
-	"io"
+	"fmt"
 	logger "marketmanipulationdetector/logger/src"
 	"os"
 	"path/filepath"
@@ -217,33 +217,6 @@ func checkFileExists(a_strFullPath string) bool {
 	return err == nil
 }
 
-func duplicateFile(a_strSourceFilePath, a_strDestinationFilePath string) bool {
-	var (
-		err     error
-		file    *os.File
-		fileAux *os.File
-	)
-	// Verifica se arquivo de destino existe
-	if checkFileExists(a_strDestinationFilePath) {
-		return false
-	}
-	// Abre arquivo de origem
-	file, err = os.Open(a_strSourceFilePath)
-	if err != nil {
-		return false
-	}
-	defer file.Close()
-	// Cria arquivo de destino
-	fileAux, err = os.Create(a_strDestinationFilePath)
-	if err != nil {
-		return false
-	}
-	defer fileAux.Close()
-	// Faz copia do conteudo do arquivo
-	_, err = io.Copy(fileAux, file)
-	return err == nil
-}
-
 func validateIntString(a_strValue string) (int, error) {
 	var (
 		err    error
@@ -315,8 +288,17 @@ func getTickerData(a_TickerData TickerDataType) string {
 	if a_TickerData.BenchmarkData.bHasBenchmarkData {
 		strResult = strResult + " : AvgTrade=" + a_TickerData.BenchmarkData.dtAvgTradeInterval.String()
 		strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
-		strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
+		strResult = strResult + " : SmallerSDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sSmallerSDOfferSize, 'f', -1, 64)
+		strResult = strResult + " : BiggerSDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sBiggerSDOfferSize, 'f', -1, 64)
 	}
 
 	return strResult
+}
+
+func getTimeAsCustomTimestamp(a_dtTime time.Time) string {
+	return fmt.Sprintf(c_strCustomTimestampFormat, a_dtTime.Year(), a_dtTime.Month(), a_dtTime.Day(), a_dtTime.Hour(), a_dtTime.Minute(), a_dtTime.Second(), a_dtTime.Nanosecond())
+}
+
+func getTimeAsCustomDuration(a_dtTime time.Time) string {
+	return fmt.Sprintf(c_strCustomDurationFormat, a_dtTime.Hour(), a_dtTime.Minute(), a_dtTime.Second(), a_dtTime.Nanosecond())
 }

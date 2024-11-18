@@ -97,8 +97,8 @@ func generateOffersBook(a_FilesInfo FilesInfoType) {
 	)
 	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_FilesInfo.GenerationInfo.strTickerName)
 
-	// 1 - Duplica arquivos de referência para pasta input na data e ticker escolhido
-	duplicateOffersBook(&a_FilesInfo)
+	// 1 - Salva nome dos arquivos a serem gerados na pasta input na data e ticker escolhido
+	getOffersBook(&a_FilesInfo)
 
 	// 2 - Carrega os dados a partir dos arquivos e armazena tudo em memoria (ja normalizados)
 	TickerData = loadTickerData(a_FilesInfo)

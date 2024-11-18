@@ -17,7 +17,8 @@ const (
 	c_strBenchmarksFile = "BENCHMARKS.csv"
 
 	c_strCustomDateFormat      = "%.4d-%.2d-%.2d"
-	c_strCustomTimestampFormat = c_strCustomDateFormat + "T%.2d:%.2d:%.2d.%.3d"
+	c_strCustomDurationFormat  = "%.2d:%.2d:%.2d.%.3d"
+	c_strCustomTimestampFormat = c_strCustomDateFormat + "T" + c_strCustomDurationFormat
 
 	c_strCustomTimestampLayout  = "2006-01-02T15:04:05.999"
 	c_strCustomTimestampLayout2 = "2006-01-02 15:04:05.999"

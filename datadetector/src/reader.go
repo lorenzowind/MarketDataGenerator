@@ -187,7 +187,7 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 	file, err = os.Open(a_strPath)
 	if err == nil {
 		reader = csv.NewReader(file)
-		reader.Comma = ','
+		reader.Comma = ';'
 
 		arrFullRecords, err = reader.ReadAll()
 		if err == nil {

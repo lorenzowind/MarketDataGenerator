@@ -42,10 +42,11 @@ type TickerDataType struct {
 }
 
 type BenchmarkDataType struct {
-	bHasBenchmarkData  bool
-	dtAvgTradeInterval time.Duration
-	sAvgOfferSize      float64
-	sSDOfferSize       float64
+	bHasBenchmarkData   bool
+	dtAvgTradeInterval  time.Time
+	sAvgOfferSize       float64
+	sBiggerSDOfferSize  float64
+	sSmallerSDOfferSize float64
 }
 
 type OfferDataType struct {

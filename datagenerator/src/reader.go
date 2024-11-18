@@ -77,34 +77,19 @@ func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType,
 	return FilesInfo, err
 }
 
-func duplicateOffersBook(a_FilesInfo *FilesInfoType) {
-	const (
-		c_strMethodName = "reader.duplicateOffersBook"
-	)
+func getOffersBook(a_FilesInfo *FilesInfoType) {
 	strInputPath := getInputPath() + "/"
-	// Duplica arquivo de compra (referencia -> geracao)
+	// Salva nome do arquivo de compra (referencia -> geracao)
 	if a_FilesInfo.strReferenceBuyPath != "" {
 		a_FilesInfo.strBuyPath = strInputPath + fmt.Sprintf(c_strBuyFile, a_FilesInfo.GenerationInfo.dtTickerDate.Year(), a_FilesInfo.GenerationInfo.dtTickerDate.Month(), a_FilesInfo.GenerationInfo.dtTickerDate.Day(), a_FilesInfo.GenerationInfo.strTickerName)
-
-		if duplicateFile(a_FilesInfo.strReferenceBuyPath, a_FilesInfo.strBuyPath) {
-			logger.Log(m_strLogFile, c_strMethodName, "Buy file duplicated successfully : strBuyPath="+a_FilesInfo.strBuyPath)
-		}
 	}
-	// Duplica arquivo de venda (referencia -> geracao)
+	// Salva nome do arquivo de venda (referencia -> geracao)
 	if a_FilesInfo.strReferenceSellPath != "" {
 		a_FilesInfo.strSellPath = strInputPath + fmt.Sprintf(c_strSellFile, a_FilesInfo.GenerationInfo.dtTickerDate.Year(), a_FilesInfo.GenerationInfo.dtTickerDate.Month(), a_FilesInfo.GenerationInfo.dtTickerDate.Day(), a_FilesInfo.GenerationInfo.strTickerName)
-
-		if duplicateFile(a_FilesInfo.strReferenceSellPath, a_FilesInfo.strSellPath) {
-			logger.Log(m_strLogFile, c_strMethodName, "Sell file duplicated successfully : strSellPath="+a_FilesInfo.strSellPath)
-		}
 	}
-	// Duplica arquivo de benchmarks (referencia -> geracao)
+	// Salva nome do arquivo de benchmarks (referencia -> geracao)
 	if a_FilesInfo.strReferenceBenchmarkPath != "" {
 		a_FilesInfo.strBenchmarkPath = strInputPath + c_strBenchmarksFile
-
-		if duplicateFile(a_FilesInfo.strReferenceBenchmarkPath, a_FilesInfo.strBenchmarkPath) {
-			logger.Log(m_strLogFile, c_strMethodName, "Benchmark file duplicated successfully : strBenchmarkPath="+a_FilesInfo.strBenchmarkPath)
-		}
 	}
 }
 
@@ -116,17 +101,17 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
-		loadOfferDataFromFile(a_FilesInfo.strBuyPath, &TickerData, true)
+		loadOfferDataFromFile(a_FilesInfo.strReferenceBuyPath, &TickerData, true)
 	}
 
 	// Carrega dados do arquivo de venda
 	if a_FilesInfo.strSellPath != "" {
-		loadOfferDataFromFile(a_FilesInfo.strSellPath, &TickerData, false)
+		loadOfferDataFromFile(a_FilesInfo.strReferenceSellPath, &TickerData, false)
 	}
 
 	// Carrega dados de benchmark
 	if a_FilesInfo.strBenchmarkPath != "" {
-		TickerData.BenchmarkData.bHasBenchmarkData = tryLoadBenchmarkFromFile(a_FilesInfo.strBenchmarkPath, &TickerData)
+		TickerData.BenchmarkData.bHasBenchmarkData = tryLoadBenchmarkFromFile(a_FilesInfo.strReferenceBenchmarkPath, &TickerData)
 	}
 
 	return TickerData
@@ -169,11 +154,13 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 				// Verifica se encontrou benchmark do ticker
 				if a_TickerData.FilesInfo.GenerationInfo.strReferenceTickerName == arrRecord[c_nTickerIndex] {
 					// Verifica benchmark de intervalo entre negocios
-					a_TickerData.BenchmarkData.dtAvgTradeInterval = getDurationFromFile(arrRecord, c_nAvgTradeIntervalIndex)
+					a_TickerData.BenchmarkData.dtAvgTradeInterval = getTimeFromFile(arrRecord, c_nAvgTradeIntervalIndex)
 					// Verifica benchmark da media da quantidade de lotes
 					a_TickerData.BenchmarkData.sAvgOfferSize = getAvgOfferSizeFromFile(arrRecord, c_nAvgOfferSizeIndex)
-					// Verifica benchmark do desvio padrao da quantidade de lotes
-					a_TickerData.BenchmarkData.sSDOfferSize = getSDOfferSizeFromFile(arrRecord, c_nSmallerSDOfferSizeIndex, c_nBiggerSDOfferSizeIndex)
+					// Verifica benchmark do desvio padrao da quantidade de lotes (min)
+					a_TickerData.BenchmarkData.sSmallerSDOfferSize = getSDOfferSizeFromFile(arrRecord, c_nSmallerSDOfferSizeIndex)
+					// Verifica benchmark do desvio padrao da quantidade de lotes (max)
+					a_TickerData.BenchmarkData.sBiggerSDOfferSize = getSDOfferSizeFromFile(arrRecord, c_nBiggerSDOfferSizeIndex)
 
 					bFound = true
 					break
@@ -295,10 +282,6 @@ func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperatio
 	}
 	logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
 	return ofopUnknown
-}
-
-func getDurationFromFile(a_arrRecord []string, a_nIndex int) time.Duration {
-	return getTimeFromFile(a_arrRecord, a_nIndex).Sub(time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC))
 }
 
 func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
@@ -489,29 +472,18 @@ func getAvgOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	return sAvgOfferSize
 }
 
-func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBiggerIndex int) float64 {
+func getSDOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	const (
 		c_strMethodName = "reader.getSDOfferSizeFromFile"
 	)
 	var (
-		err                 error
-		sSmallerSDOfferSize float64
-		sBiggerSDOfferSize  float64
+		err          error
+		sSDOfferSize float64
 	)
-	sSmallerSDOfferSize, err = validateFloatString(a_arrRecord[a_nSmallerIndex])
+	sSDOfferSize, err = validateFloatString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size sd : a_nIndex="+strconv.Itoa(a_nIndex)+" : "+err.Error())
 		return 0
 	}
-	sBiggerSDOfferSize, err = validateFloatString(a_arrRecord[a_nBiggerIndex])
-	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
-		return 0
-	}
-
-	return (sSmallerSDOfferSize + sBiggerSDOfferSize) / 2
-}
-
-func saveOffersBook(a_TickerData TickerDataType) {
-
+	return sSDOfferSize
 }
