@@ -99,6 +99,10 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	)
 	TickerData.FilesInfo = &a_FilesInfo
 
+	TickerData.MaskDataInfo.hshMaskAccount = make(map[string]int)
+	TickerData.MaskDataInfo.hshMaskPrimaryID = make(map[int]int)
+	TickerData.MaskDataInfo.hshMaskSecondaryID = make(map[int]int)
+
 	// Carrega dados do arquivo de compra
 	if a_FilesInfo.strBuyPath != "" {
 		loadOfferDataFromFile(a_FilesInfo.strReferenceBuyPath, &TickerData, true)
@@ -230,18 +234,18 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 				}
 				// Verifica natureza da operacao
 				OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
-				// Normaliza timestamp da oferta
+				// Verifica timestamp da oferta e faz normalizacao
 				OfferData.dtTime = normalizeTime(getTimeFromFile(arrRecord, c_nTimeIndex), a_TickerData.FilesInfo.GenerationInfo.dtReferenceTickerDate, a_TickerData.FilesInfo.GenerationInfo.dtTickerDate)
 				// Verifica numero de geracao da oferta
-				OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
-				// Verifica conta
-				OfferData.strAccount = arrRecord[c_nAccountIndex]
+				OfferData.nGenerationID = getOfferGenerationIDFromFile(arrRecord, c_nGenerationIDIndex)
+				// Verifica conta e faz mascaramento
+				OfferData.strAccount = maskStringToIntString(arrRecord[c_nAccountIndex], a_TickerData.MaskDataInfo.hshMaskAccount, &a_TickerData.MaskDataInfo.nCurrentAccount)
 				// Verifica numero do negocio relacionado
 				OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
-				// Verifica numero primario da oferta
-				OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
-				// Verifica numero secundario da oferta
-				OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
+				// Verifica numero primario da oferta e faz mascaramento
+				OfferData.nPrimaryID = maskIntToInt(getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex), a_TickerData.MaskDataInfo.hshMaskPrimaryID, &a_TickerData.MaskDataInfo.nCurrentPrimaryID)
+				// Verifica numero secundario da oferta e faz mascaramento
+				OfferData.nSecondaryID = maskIntToInt(getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex), a_TickerData.MaskDataInfo.hshMaskSecondaryID, &a_TickerData.MaskDataInfo.nCurrentSecondaryD)
 				// Verifica quantidade restante
 				OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
 				// Verifica quantidade negociada ate o momento
@@ -337,9 +341,41 @@ func normalizeTime(a_dtLoadedTime, a_dtReferenceTime, a_dtTime time.Time) time.T
 	return dtTime
 }
 
-func getOfferGenerationFromFile(a_arrRecord []string, a_nIndex int) int {
+func maskIntToInt(a_nData int, a_hshIntData map[int]int, a_nCurrentInt *int) int {
+	var (
+		nMaskIntData int
+		bKeyExists   bool
+	)
+	// Mascara int e concatena atual
+	nMaskIntData, bKeyExists = a_hshIntData[a_nData]
+	if !bKeyExists {
+		*a_nCurrentInt = *a_nCurrentInt + 1
+		nMaskIntData = *a_nCurrentInt
+
+		a_hshIntData[a_nData] = nMaskIntData
+	}
+	return nMaskIntData
+}
+
+func maskStringToIntString(a_strData string, a_hshStringData map[string]int, a_nCurrentInt *int) string {
+	var (
+		nMaskIntData int
+		bKeyExists   bool
+	)
+	// Mascara string e concatena atual
+	nMaskIntData, bKeyExists = a_hshStringData[a_strData]
+	if !bKeyExists {
+		*a_nCurrentInt = *a_nCurrentInt + 1
+		nMaskIntData = *a_nCurrentInt
+
+		a_hshStringData[a_strData] = nMaskIntData
+	}
+	return strconv.Itoa(nMaskIntData)
+}
+
+func getOfferGenerationIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	const (
-		c_strMethodName = "reader.getOfferGenerationFromFile"
+		c_strMethodName = "reader.getOfferGenerationIDFromFile"
 	)
 	var (
 		err                error

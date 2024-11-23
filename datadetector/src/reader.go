@@ -278,7 +278,7 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 				// Verifica timestamp da oferta
 				OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
 				// Verifica numero de geracao da oferta
-				OfferData.nGenerationID = getOfferGenerationFromFile(arrRecord, c_nGenerationIDIndex)
+				OfferData.nGenerationID = getOfferGenerationIDFromFile(arrRecord, c_nGenerationIDIndex)
 				// Verifica conta
 				OfferData.strAccount = arrRecord[c_nAccountIndex]
 				// Verifica numero do negocio relacionado
@@ -401,9 +401,9 @@ func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
 	return dtTime
 }
 
-func getOfferGenerationFromFile(a_arrRecord []string, a_nIndex int) int {
+func getOfferGenerationIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	const (
-		c_strMethodName = "reader.getOfferGenerationFromFile"
+		c_strMethodName = "reader.getOfferGenerationIDFromFile"
 	)
 	var (
 		err                error

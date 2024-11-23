@@ -34,8 +34,18 @@ type FilesInfoType struct {
 	strBenchmarkPath          string
 }
 
+type MaskDataInfoType struct {
+	hshMaskAccount     map[string]int
+	hshMaskPrimaryID   map[int]int
+	hshMaskSecondaryID map[int]int
+	nCurrentAccount    int // tipo int sera convertido para string
+	nCurrentPrimaryID  int
+	nCurrentSecondaryD int
+}
+
 type TickerDataType struct {
 	FilesInfo     *FilesInfoType
+	MaskDataInfo  MaskDataInfoType
 	lstBuy        list.List // doubly linked list de dados de ofertas de compra
 	lstSell       list.List // doubly linked list de dados de ofertas de venda
 	BenchmarkData BenchmarkDataType
