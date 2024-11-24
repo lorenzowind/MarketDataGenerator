@@ -18,7 +18,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 		OfferData OfferDataType
 		EventInfo EventInfoType
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 
 	NextBuy = a_TickerData.lstBuy.Front()
 	NextSell = a_TickerData.lstSell.Front()
@@ -50,7 +50,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 					EventInfo.bSellEventsEnd = true
 				}
 			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
+				logger.LogError(m_LogInfo, "Main", c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
 			}
 		} else if NextBuy != nil && !EventInfo.bBuyEventsEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
@@ -74,7 +74,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 			}
 		} else {
 			EventInfo.bProcessEvent = false
-			logger.LogError(m_strLogFile, c_strMethodName, "NextBuy and NextSell are nil")
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "NextBuy and NextSell are nil")
 		}
 		// Processa evento da oferta de compra ou venda
 		if EventInfo.bProcessEvent {
@@ -87,7 +87,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 		}
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 }
 
 func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
@@ -108,9 +108,9 @@ func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEve
 	case ofopTrade:
 		processEventTrade(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopUnknown:
-		logger.LogError(m_strLogFile, c_strMethodName, "Unknown offer operation : chOperation="+string(a_OfferData.chOperation))
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Unknown offer operation : chOperation="+string(a_OfferData.chOperation))
 	default:
-		logger.LogError(m_strLogFile, c_strMethodName, "Default offer operation : chOperation="+string(a_OfferData.chOperation))
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Default offer operation : chOperation="+string(a_OfferData.chOperation))
 	}
 }
 

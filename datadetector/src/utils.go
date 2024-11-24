@@ -34,7 +34,7 @@ func getInputPath() string {
 	return getDataPath() + c_strInputFolder
 }
 
-func printMainMenuOptions() {
+func printMainMenuOptions(a_strParentLog string) {
 	const (
 		c_strMethodName = "utils.printMainMenuOptions"
 	)
@@ -51,24 +51,24 @@ func printMainMenuOptions() {
 	strOptions += "\t5 - [IN ANALYSIS] Run all with parallelism between blocks\n"
 	strOptions += "\t6 - [IN ANALYSIS] Run all with full parallelism\n"
 
-	logger.Log(m_strLogFile, c_strMethodName, strOptions)
-	logger.Log(m_strLogFile, c_strMethodName, "Write an option on terminal")
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strOptions)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write an option on terminal")
 }
 
-func validateMainMenuOption(a_nOption int) bool {
+func validateMainMenuOption(a_strParentLog string, a_nOption int) bool {
 	const (
 		c_strMethodName = "utils.validateMainMenuOption"
 	)
 	if a_nOption < 0 && a_nOption > 6 {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid option")
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid option")
 		return false
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Valid option")
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Valid option")
 	return true
 }
 
-func getIntegerFromInput() int {
+func getIntegerFromInput(a_strParentLog string) int {
 	const (
 		c_strMethodName = "utils.getIntegerFromInput"
 	)
@@ -83,7 +83,7 @@ func getIntegerFromInput() int {
 	// Obtem opcao escrita no terminal
 	strRead, err = InputReader.ReadString('\n')
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return -1
 	}
 
@@ -96,16 +96,16 @@ func getIntegerFromInput() int {
 	// Converte opcao lida do terminal
 	nResult, err = strconv.Atoi(strRead)
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return -1
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read integer successfully : nResult="+strconv.Itoa(nResult))
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Read integer successfully : nResult="+strconv.Itoa(nResult))
 
 	return nResult
 }
 
-func getStringFromInput() string {
+func getStringFromInput(a_strParentLog string) string {
 	const (
 		c_strMethodName = "utils.getStringFromInput"
 	)
@@ -119,19 +119,19 @@ func getStringFromInput() string {
 	// Obtem string escrita no terminal
 	strRead, err = InputReader.ReadString('\n')
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return ""
 	}
 
 	// Remove o \n do conteudo lido
 	strRead = strings.TrimSuffix(strRead, "\n")
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read string successfully : strRead="+strRead)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Read string successfully : strRead="+strRead)
 
 	return strRead
 }
 
-func readTradeRunInput() (TradeRunInfoType, error) {
+func readTradeRunInput(a_strParentLog string) (TradeRunInfoType, error) {
 	const (
 		c_strMethodName = "utils.readTradeRunInput"
 	)
@@ -140,24 +140,24 @@ func readTradeRunInput() (TradeRunInfoType, error) {
 		strTickerDate string
 	)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the ticker name on terminal")
-	strTickerName = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the ticker name on terminal")
+	strTickerName = getStringFromInput(a_strParentLog)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the trade date on terminal (format yyyy-mm-dd)")
-	strTickerDate = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the trade date on terminal (format yyyy-mm-dd)")
+	strTickerDate = getStringFromInput(a_strParentLog)
 
-	return validateTradeRunInput(strTickerName, strTickerDate)
+	return validateTradeRunInput(a_strParentLog, strTickerName, strTickerDate)
 }
 
-func readInputRunForAllTickers() (InfoForAllTickersType, error) {
+func readInputRunForAllTickers(a_strParentLog string) (InfoForAllTickersType, error) {
 	const (
 		c_strMethodName = "utils.readInputRunForAllTickers"
 	)
 	var (
 		nProcessors int
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Write the number of processors on terminal")
-	nProcessors = getIntegerFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the number of processors on terminal")
+	nProcessors = getIntegerFromInput(a_strParentLog)
 
 	return validateInputRunForAllTickers(nProcessors)
 }
@@ -173,7 +173,7 @@ func validateInputRunForAllTickers(a_nProcessors int) (InfoForAllTickersType, er
 	}, nil
 }
 
-func validateTradeRunInput(a_strTickerName, a_strTickerDate string) (TradeRunInfoType, error) {
+func validateTradeRunInput(a_strParentLog, a_strTickerName, a_strTickerDate string) (TradeRunInfoType, error) {
 	const (
 		c_strMethodName = "utils.validateTradeRunInput"
 	)
@@ -184,14 +184,14 @@ func validateTradeRunInput(a_strTickerName, a_strTickerDate string) (TradeRunInf
 
 	// Valida ticker informado no terminal
 	if a_strTickerName == "" || strings.Contains(a_strTickerName, " ") {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker name")
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker name")
 		return TradeRunInfoType{}, errors.New("ticker name validation failure")
 	}
 
 	// Valida data informada no terminal e converte para um tipo data
 	dtTickerDate, err = validateDateString(a_strTickerDate)
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker date : "+err.Error())
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker date : "+err.Error())
 		return TradeRunInfoType{}, errors.New("ticker date validation failure")
 	}
 
@@ -278,7 +278,7 @@ func checkFileExists(a_strFullPath string) bool {
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListOffers(a_lstData list.List) {
+func printListOffers(a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListOffers"
 	)
@@ -287,21 +287,21 @@ func printListOffers(a_lstData list.List) {
 		Temp      *list.Element
 	)
 	if a_lstData.Front() == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "List of offers is empty")
+		logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "List of offers is empty")
 	} else {
 		Temp = a_lstData.Front()
 		// Itera sobre cada item da lista encadeada
 		for Temp != nil {
 			OfferData = Temp.Value.(OfferDataType)
 			// Loga os dados da oferta
-			printOfferData(OfferData)
+			printOfferData(a_strParentLog, OfferData)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printOfferData(a_OfferData OfferDataType) {
+func printOfferData(a_strParentLog string, a_OfferData OfferDataType) {
 	const (
 		c_strMethodName = "utils.printOfferData"
 	)
@@ -320,7 +320,7 @@ func printOfferData(a_OfferData OfferDataType) {
 	strResult = strResult + " : nTotalQuantity=" + strconv.Itoa(a_OfferData.nTotalQuantity)
 	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64)
 
-	logger.Log(m_strLogFile, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
 }
 
 //lint:ignore U1000 Ignore unused function
@@ -344,7 +344,7 @@ func getOfferData(a_OfferData OfferDataType) string {
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListBookOffers(a_lstData list.List) {
+func printListBookOffers(a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListBookOffers"
 	)
@@ -353,21 +353,21 @@ func printListBookOffers(a_lstData list.List) {
 		Temp      *list.Element
 	)
 	if a_lstData.Front() == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "List of book offers is empty")
+		logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "List of book offers is empty")
 	} else {
 		Temp = a_lstData.Front()
 		// Itera sobre cada item da lista encadeada
 		for Temp != nil {
 			BookOffer = Temp.Value.(BookOfferType)
 			// Loga os dados da oferta
-			printBookOffer(BookOffer)
+			printBookOffer(a_strParentLog, BookOffer)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printBookOffer(a_BookOffer BookOfferType) {
+func printBookOffer(a_strParentLog string, a_BookOffer BookOfferType) {
 	const (
 		c_strMethodName = "utils.printBookOffer"
 	)
@@ -380,11 +380,11 @@ func printBookOffer(a_BookOffer BookOfferType) {
 	strResult = strResult + " : strAccount=" + a_BookOffer.strAccount
 	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_BookOffer.sPrice, 'f', -1, 64)
 
-	logger.Log(m_strLogFile, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListBookPrices(a_lstData list.List) {
+func printListBookPrices(a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListBookPrices"
 	)
@@ -393,21 +393,21 @@ func printListBookPrices(a_lstData list.List) {
 		Temp      *list.Element
 	)
 	if a_lstData.Front() == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "List of book prices is empty")
+		logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "List of book prices is empty")
 	} else {
 		Temp = a_lstData.Front()
 		// Itera sobre cada item da lista encadeada
 		for Temp != nil {
 			BookPrice = Temp.Value.(BookPriceType)
 			// Loga os dados da oferta
-			printBookPrice(BookPrice)
+			printBookPrice(a_strParentLog, BookPrice)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printBookPrice(a_BookPrice BookPriceType) {
+func printBookPrice(a_strParentLog string, a_BookPrice BookPriceType) {
 	const (
 		c_strMethodName = "utils.printBookOffer"
 	)
@@ -418,7 +418,7 @@ func printBookPrice(a_BookPrice BookPriceType) {
 	strResult = strResult + " : nCount=" + strconv.Itoa(a_BookPrice.nCount)
 	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_BookPrice.nQuantity)
 
-	logger.Log(m_strLogFile, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
 }
 
 func getTickerData(a_TickerData TickerDataType) string {

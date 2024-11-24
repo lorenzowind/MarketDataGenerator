@@ -38,7 +38,7 @@ func getReferencePath() string {
 	return getDataPath() + c_strReferenceFolder
 }
 
-func printMainMenuOptions() {
+func printMainMenuOptions(a_strParentLog string) {
 	const (
 		c_strMethodName = "utils.printMainMenuOptions"
 	)
@@ -50,24 +50,24 @@ func printMainMenuOptions() {
 	strOptions += "\t0 - Exit\n"
 	strOptions += "\t1 - Generate unique offers book (buy and sell data)\n"
 
-	logger.Log(m_strLogFile, c_strMethodName, strOptions)
-	logger.Log(m_strLogFile, c_strMethodName, "Write an option on terminal")
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strOptions)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write an option on terminal")
 }
 
-func validateMainMenuOption(a_nOption int) bool {
+func validateMainMenuOption(a_strParentLog string, a_nOption int) bool {
 	const (
 		c_strMethodName = "utils.validateMainMenuOption"
 	)
 	if a_nOption < 0 && a_nOption > 6 {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid option")
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid option")
 		return false
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Valid option")
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Valid option")
 	return true
 }
 
-func getIntegerFromInput() int {
+func getIntegerFromInput(a_strParentLog string) int {
 	const (
 		c_strMethodName = "utils.getIntegerFromInput"
 	)
@@ -82,7 +82,7 @@ func getIntegerFromInput() int {
 	// Obtem opcao escrita no terminal
 	strRead, err = InputReader.ReadString('\n')
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return -1
 	}
 
@@ -95,16 +95,16 @@ func getIntegerFromInput() int {
 	// Converte opcao lida do terminal
 	nResult, err = strconv.Atoi(strRead)
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return -1
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read integer successfully : nResult="+strconv.Itoa(nResult))
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Read integer successfully : nResult="+strconv.Itoa(nResult))
 
 	return nResult
 }
 
-func getStringFromInput() string {
+func getStringFromInput(a_strParentLog string) string {
 	const (
 		c_strMethodName = "utils.getStringFromInput"
 	)
@@ -118,14 +118,14 @@ func getStringFromInput() string {
 	// Obtem string escrita no terminal
 	strRead, err = InputReader.ReadString('\n')
 	if err != nil {
-		logger.LogException(m_strLogFile, c_strMethodName, err.Error())
+		logger.LogException(m_LogInfo, a_strParentLog, c_strMethodName, err.Error())
 		return ""
 	}
 
 	// Remove o \n do conteudo lido
 	strRead = strings.TrimSuffix(strRead, "\n")
 
-	logger.Log(m_strLogFile, c_strMethodName, "Read string successfully : strRead="+strRead)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Read string successfully : strRead="+strRead)
 
 	return strRead
 }
@@ -143,7 +143,7 @@ func validateDateString(a_strDate string) (time.Time, error) {
 	return dtDate, err
 }
 
-func validateGenerationInput(a_strReferenceTickerName, a_strReferenceTickerDate, a_strTickerName, a_strTickerDate string) (GenerationInfoType, error) {
+func validateGenerationInput(a_strParentLog, a_strReferenceTickerName, a_strReferenceTickerDate, a_strTickerName, a_strTickerDate string) (GenerationInfoType, error) {
 	const (
 		c_strMethodName = "utils.validateGenerationInput"
 	)
@@ -154,24 +154,24 @@ func validateGenerationInput(a_strReferenceTickerName, a_strReferenceTickerDate,
 	)
 	// Valida ticker de referencia informado no terminal
 	if a_strReferenceTickerName == "" || strings.Contains(a_strReferenceTickerName, " ") {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid reference ticker name")
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid reference ticker name")
 		return GenerationInfoType{}, errors.New("reference ticker name validation failure")
 	}
 	// Valida data de referencia informada no terminal e converte para um tipo data
 	dtReferenceTickerDate, err = validateDateString(a_strReferenceTickerDate)
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid reference ticker date : "+err.Error())
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid reference ticker date : "+err.Error())
 		return GenerationInfoType{}, errors.New("reference ticker date validation failure")
 	}
 	// Valida ticker informado no terminal
 	if a_strTickerName == "" || strings.Contains(a_strTickerName, " ") {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker name")
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker name")
 		return GenerationInfoType{}, errors.New("ticker name validation failure")
 	}
 	// Valida data informada no terminal e converte para um tipo data
 	dtTickerDate, err = validateDateString(a_strTickerDate)
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid ticker date : "+err.Error())
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker date : "+err.Error())
 		return GenerationInfoType{}, errors.New("ticker date validation failure")
 	}
 
@@ -183,7 +183,7 @@ func validateGenerationInput(a_strReferenceTickerName, a_strReferenceTickerDate,
 	}, nil
 }
 
-func readGenerationInput() (GenerationInfoType, error) {
+func readGenerationInput(a_strParentLog string) (GenerationInfoType, error) {
 	const (
 		c_strMethodName = "utils.readGenerationInput"
 	)
@@ -194,19 +194,19 @@ func readGenerationInput() (GenerationInfoType, error) {
 		strTickerDate          string
 	)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the reference ticker name on terminal")
-	strReferenceTickerName = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the reference ticker name on terminal")
+	strReferenceTickerName = getStringFromInput(a_strParentLog)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the reference trade date on terminal (format yyyy-mm-dd)")
-	strReferenceTickerDate = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the reference trade date on terminal (format yyyy-mm-dd)")
+	strReferenceTickerDate = getStringFromInput(a_strParentLog)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the generation ticker name on terminal")
-	strTickerName = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the generation ticker name on terminal")
+	strTickerName = getStringFromInput(a_strParentLog)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Write the generation trade date on terminal (format yyyy-mm-dd)")
-	strTickerDate = getStringFromInput()
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the generation trade date on terminal (format yyyy-mm-dd)")
+	strTickerDate = getStringFromInput(a_strParentLog)
 
-	return validateGenerationInput(strReferenceTickerName, strReferenceTickerDate, strTickerName, strTickerDate)
+	return validateGenerationInput(a_strParentLog, strReferenceTickerName, strReferenceTickerDate, strTickerName, strTickerDate)
 }
 
 func checkFileExists(a_strFullPath string) bool {

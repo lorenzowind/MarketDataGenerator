@@ -33,7 +33,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strBuyPath)
 
 	if bFileExists {
-		logger.Log(m_strLogFile, c_strMethodName, "Buy file found : strBuyPath="+strBuyPath)
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "Buy file found : strBuyPath="+strBuyPath)
 	} else {
 		strBuyPath = ""
 	}
@@ -42,7 +42,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strSellPath)
 
 	if bFileExists {
-		logger.Log(m_strLogFile, c_strMethodName, "Sell file found : strSellPath="+strSellPath)
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "Sell file found : strSellPath="+strSellPath)
 	} else {
 		strSellPath = ""
 	}
@@ -51,7 +51,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strBenchmarkPath)
 
 	if bFileExists {
-		logger.Log(m_strLogFile, c_strMethodName, "Benchmarks file found : strBenchmarkPath="+strBenchmarkPath)
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "Benchmarks file found : strBenchmarkPath="+strBenchmarkPath)
 	} else {
 		strBenchmarkPath = ""
 	}
@@ -92,7 +92,7 @@ func getAllTickersFiles() []FilesInfoType {
 	arrDir, err = os.ReadDir(strInputPath)
 
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to get the directory : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to get the directory : "+err.Error())
 		return arrTickersInfo
 	}
 
@@ -195,7 +195,7 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 			for _, arrRecord = range arrFullRecords[1:] {
 				// Verifica tamanho da linha
 				if len(arrRecord) != c_nLastIndex+1 {
-					logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
 					continue
 				}
 				// Verifica se encontrou benchmark do ticker
@@ -213,15 +213,15 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 			}
 
 			if !bFound {
-				logger.LogWarning(m_strLogFile, c_strMethodName, "Benchmark for ticker not found : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+				logger.LogWarning(m_LogInfo, "Main", c_strMethodName, "Benchmark for ticker not found : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 			}
 
 			defer file.Close()
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to read the records : "+err.Error())
 		}
 	} else {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
 	}
 
 	return bFound
@@ -270,7 +270,7 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 			for _, arrRecord = range arrFullRecords[1:] {
 				// Verifica tamanho da linha
 				if len(arrRecord) != c_nLastIndex+1 {
-					logger.LogError(m_strLogFile, c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
 					continue
 				}
 				// Verifica natureza da operacao
@@ -303,10 +303,10 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 
 			defer file.Close()
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Fail to read the records : "+err.Error())
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to read the records : "+err.Error())
 		}
 	} else {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
 	}
 }
 
@@ -378,7 +378,7 @@ func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperatio
 	} else if a_arrRecord[a_nIndex][0] == 'D' {
 		return ofopReafirmed
 	}
-	logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
+	logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
 	return ofopUnknown
 }
 
@@ -396,7 +396,7 @@ func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
 	)
 	dtTime, err = validateTimestampString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid timestamp : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid timestamp : "+err.Error())
 	}
 	return dtTime
 }
@@ -411,7 +411,7 @@ func getOfferGenerationIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferGenerationID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer generation ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer generation ID : "+err.Error())
 	}
 	return nOfferGenerationID
 }
@@ -426,7 +426,7 @@ func getTradeIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid trade ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid trade ID : "+err.Error())
 	}
 	return nID
 }
@@ -441,7 +441,7 @@ func getOfferPrimaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferPrimaryID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer primary ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer primary ID : "+err.Error())
 	}
 	return nOfferPrimaryID
 }
@@ -456,7 +456,7 @@ func getOfferSecondaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferSecondaryID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer secondary ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer secondary ID : "+err.Error())
 	}
 	return nOfferSecondaryID
 }
@@ -471,7 +471,7 @@ func getTradeQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid trade quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid trade quantity : "+err.Error())
 	}
 	return nQuantity
 }
@@ -486,7 +486,7 @@ func getPriceFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	)
 	sPrice, err = validateFloatString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid price : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid price : "+err.Error())
 	}
 	return sPrice
 }
@@ -501,7 +501,7 @@ func getCurrentQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nCurrentQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid current quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid current quantity : "+err.Error())
 	}
 	return nCurrentQuantity
 }
@@ -516,7 +516,7 @@ func getTotalQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nTotalQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid total quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid total quantity : "+err.Error())
 	}
 	return nTotalQuantity
 }
@@ -531,7 +531,7 @@ func getAvgOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	)
 	sAvgOfferSize, err = validateFloatString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size average : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size average : "+err.Error())
 	}
 	return sAvgOfferSize
 }
@@ -547,12 +547,12 @@ func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBigger
 	)
 	sSmallerSDOfferSize, err = validateFloatString(a_arrRecord[a_nSmallerIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
 		return 0
 	}
 	sBiggerSDOfferSize, err = validateFloatString(a_arrRecord[a_nBiggerIndex])
 	if err != nil {
-		logger.LogError(m_strLogFile, c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
 		return 0
 	}
 

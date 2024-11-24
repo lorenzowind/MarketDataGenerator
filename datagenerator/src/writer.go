@@ -15,21 +15,21 @@ func saveOffersBook(a_TickerData TickerDataType) {
 	// Salva dados do arquivo de compra
 	if a_TickerData.FilesInfo.strBuyPath != "" {
 		if saveOfferDataFromFile(a_TickerData.FilesInfo.strBuyPath, &a_TickerData, true) {
-			logger.Log(m_strLogFile, c_strMethodName, "Buy file generated successfully : strBuyPath="+a_TickerData.FilesInfo.strBuyPath)
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "Buy file generated successfully : strBuyPath="+a_TickerData.FilesInfo.strBuyPath)
 		}
 	}
 
 	// Salva dados do arquivo de venda
 	if a_TickerData.FilesInfo.strSellPath != "" {
 		if saveOfferDataFromFile(a_TickerData.FilesInfo.strSellPath, &a_TickerData, false) {
-			logger.Log(m_strLogFile, c_strMethodName, "Sell file generated successfully : strSellPath="+a_TickerData.FilesInfo.strSellPath)
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "Sell file generated successfully : strSellPath="+a_TickerData.FilesInfo.strSellPath)
 		}
 	}
 
 	// Carrega dados de benchmark
 	if a_TickerData.FilesInfo.strBenchmarkPath != "" {
 		if saveBenchmarkFromFile(a_TickerData.FilesInfo.strBenchmarkPath, &a_TickerData) {
-			logger.Log(m_strLogFile, c_strMethodName, "Benchmark file generated successfully : strBenchmarkPath="+a_TickerData.FilesInfo.strBenchmarkPath)
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "Benchmark file generated successfully : strBenchmarkPath="+a_TickerData.FilesInfo.strBenchmarkPath)
 		}
 	}
 }
@@ -114,7 +114,7 @@ func saveOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 						strconv.FormatFloat(OfferData.sPrice, 'f', -1, 64),  // val_preco_oferta
 					})
 					if err != nil {
-						logger.LogError(m_strLogFile, c_strMethodName, "Fail to write record on the file : "+err.Error())
+						logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to write record on the file : "+err.Error())
 						bFullWrite = false
 						break
 					}
@@ -123,11 +123,11 @@ func saveOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 				}
 			}
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Fail to write header on the file : "+err.Error())
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to write header on the file : "+err.Error())
 			bFullWrite = false
 		}
 	} else {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
 		bFullWrite = false
 	}
 
@@ -179,15 +179,15 @@ func saveBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bool 
 				strconv.FormatFloat(a_TickerData.BenchmarkData.sBiggerSDOfferSize, 'f', -1, 64),  // maior_dp_qtd_ofertas
 			})
 			if err != nil {
-				logger.LogError(m_strLogFile, c_strMethodName, "Fail to write record on the file : "+err.Error())
+				logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to write record on the file : "+err.Error())
 				bFullWrite = false
 			}
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Fail to write header on the file : "+err.Error())
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to write header on the file : "+err.Error())
 			bFullWrite = false
 		}
 	} else {
-		logger.LogError(m_strLogFile, c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
 		bFullWrite = false
 	}
 

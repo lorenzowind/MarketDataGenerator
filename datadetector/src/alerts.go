@@ -13,12 +13,22 @@ const (
 func processDetection(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
 	// So realiza a deteccao caso tenha encontrado os valores de benchmark
 	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
-		// Armazena estado do livro no evento de trade
+		// Verifica se eh evento de trade
 		if a_OfferData.chOperation == ofopTrade {
+			// Armazena estado do livro
 			processTradePrice(a_TickerData, a_DataInfo, a_OfferData)
+			// Layering - detecta cenario tradicional
+			checkLayering(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
+			// Verifica se eh quaisquer outro evento
+		} else {
+			// Verifica se eh evento de edicao
+			if a_OfferData.chOperation == ofopEdit {
+				// Layering - detecta cenario de modificacao de preco das ofertas
+				checkLayeringModifiedOffers(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
+			}
+			// Spoofing - detecta cenario tradicional
+			checkSpoofing(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 		}
-		checkSpoofing(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
-		checkLayering(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 	}
 }
 
@@ -52,13 +62,13 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 		if OriginalSpoofingTrade != nil {
 			lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
 
-			logger.Log(m_strLogFile, c_strMethodName, "Spoofing detected")
-			logger.Log(m_strLogFile, c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
-			logger.Log(m_strLogFile, c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
-			logger.Log(m_strLogFile, c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
-			logger.Log(m_strLogFile, c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing detected")
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
 			for _, SpoofingTrade := range lstSpoofingTrades {
-				logger.Log(m_strLogFile, c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
+				logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
 			}
 		}
 	}
@@ -207,6 +217,9 @@ func getSpoofingTrades(a_TickerData *TickerDataType, a_bBuyEvent bool, a_Origina
 }
 
 func checkLayering(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
+}
+
+func checkLayeringModifiedOffers(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
 }
 
 func IsBetweenTradeInverval(a_TickerData *TickerDataType, a_dtLeft, a_dtRight time.Time) bool {

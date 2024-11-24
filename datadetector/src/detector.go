@@ -8,33 +8,53 @@ import (
 )
 
 var (
-	m_strLogFolder string
-	m_strLogFile   string
+	m_LogInfo logger.LogInfoType
 )
 
 func Start() {
+	beginLogInfo()
+	startMenu()
+	endLogInfo()
+}
+
+func beginLogInfo() {
 	const (
-		c_strMethodName = "detector.Start"
+		c_strMethodName = "detector.beginLogInfo"
 	)
 	var (
 		err error
 	)
-
-	m_strLogFolder, err = logger.StartAppLog(getLogsPath())
+	m_LogInfo, err = logger.StartAppLog(getLogsPath())
 	if err != nil {
 		panic("log folder can not be created")
 	}
 
-	m_strLogFile, err = logger.CreateLog(m_strLogFolder, "Main")
+	m_LogInfo, err = logger.CreateLog(m_LogInfo, "Main")
 	if err != nil {
-		panic("log file can not be created")
+		panic("log file can not be created : Main")
 	}
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
 
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	m_LogInfo, err = logger.CreateLog(m_LogInfo, "Manipulation-Spoofing")
+	if err != nil {
+		panic("log file can not be created : Manipulation-Spoofing")
+	}
+	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Begin")
 
-	startMenu()
+	m_LogInfo, err = logger.CreateLog(m_LogInfo, "Manipulation-Layering")
+	if err != nil {
+		panic("log file can not be created : Manipulation-Layering")
+	}
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, "Begin")
+}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+func endLogInfo() {
+	const (
+		c_strMethodName = "detector.endLogInfo"
+	)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
+	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "End")
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, "End")
 }
 
 func startMenu() {
@@ -45,13 +65,13 @@ func startMenu() {
 		nOption int
 	)
 
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
 
 	for {
-		printMainMenuOptions()
-		nOption = getIntegerFromInput()
+		printMainMenuOptions("Main")
+		nOption = getIntegerFromInput("Main")
 
-		if validateMainMenuOption(nOption) {
+		if validateMainMenuOption("Main", nOption) {
 			if nOption == 1 {
 				startTradeRunForUniqueTicker()
 			} else if nOption == 2 {
@@ -59,14 +79,14 @@ func startMenu() {
 			} else if nOption == 3 {
 				startTradeRunForAllTickers(true)
 			} else if nOption == 4 || nOption == 5 || nOption == 6 {
-				logger.Log(m_strLogFile, c_strMethodName, "This option is under analysis if will be implemented")
+				logger.Log(m_LogInfo, "Main", c_strMethodName, "This option is under analysis if will be implemented")
 			} else if nOption == 0 {
 				break
 			}
 		}
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
 }
 
 func startTradeRunForUniqueTicker() {
@@ -78,11 +98,11 @@ func startTradeRunForUniqueTicker() {
 		FilesInfo    FilesInfoType
 		TradeRunInfo TradeRunInfoType
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
 
-	TradeRunInfo, err = readTradeRunInput()
+	TradeRunInfo, err = readTradeRunInput("Main")
 	if err == nil {
-		logger.Log(m_strLogFile, c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "strTickerName="+TradeRunInfo.strTickerName+" : dtTickerDate="+TradeRunInfo.dtTickerDate.String())
 
 		FilesInfo, err = getUniqueTickerFiles(TradeRunInfo)
 		// Verifica se arquivos (compra e venda) existem conforme ticker e data informado
@@ -90,11 +110,11 @@ func startTradeRunForUniqueTicker() {
 			// Inicia enriquecimento
 			runUniqueTicker(false, FilesInfo, nil)
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Ticker file not found")
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Ticker file not found")
 		}
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
 }
 
 func startTradeRunForAllTickers(a_bParallelRun bool) {
@@ -108,13 +128,13 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 		arrFilesInfo      []FilesInfoType
 		WaitGroup         sync.WaitGroup
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
 
 	// Verifica se deve ser aplicado paralelismo
 	if a_bParallelRun {
-		InfoForAllTickers, err = readInputRunForAllTickers()
+		InfoForAllTickers, err = readInputRunForAllTickers("Main")
 		if err == nil {
-			logger.Log(m_strLogFile, c_strMethodName, "nProcessors="+strconv.Itoa(InfoForAllTickers.nProcessors))
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "nProcessors="+strconv.Itoa(InfoForAllTickers.nProcessors))
 			// Seta o numero de processadores a ser utilizado (worker pool)
 			runtime.GOMAXPROCS(InfoForAllTickers.nProcessors)
 
@@ -123,7 +143,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 
 			// Seta o numero de goroutines a serem executadas
 			WaitGroup.Add(len(arrFilesInfo))
-			logger.Log(m_strLogFile, c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "Added numbers of routines to be executed : arrFilesInfo="+strconv.Itoa(len(arrFilesInfo)))
 
 			if len(arrFilesInfo) > 0 {
 				// Itera sobre tickers disponiveis e processa cada um
@@ -132,7 +152,7 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 					go runUniqueTicker(a_bParallelRun, FilesInfo, &WaitGroup)
 				}
 			} else {
-				logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+				logger.LogError(m_LogInfo, "Main", c_strMethodName, "Any ticker files not found")
 			}
 
 			// Espera as goroutines finalizarem
@@ -149,11 +169,11 @@ func startTradeRunForAllTickers(a_bParallelRun bool) {
 				runUniqueTicker(a_bParallelRun, FilesInfo, nil)
 			}
 		} else {
-			logger.LogError(m_strLogFile, c_strMethodName, "Any ticker files not found")
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Any ticker files not found")
 		}
 	}
 
-	logger.Log(m_strLogFile, c_strMethodName, "End")
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
 }
 
 func runUniqueTicker(a_bParallelRun bool, a_FilesInfo FilesInfoType, a_WaitGroup *sync.WaitGroup) {
@@ -173,18 +193,18 @@ func processTradeData(a_FilesInfo FilesInfoType) {
 		TickerData TickerDataType
 		DataInfo   DataInfoType
 	)
-	logger.Log(m_strLogFile, c_strMethodName, "Begin : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 
 	// 1 - Carrega os dados a partir dos arquivos e armazena tudo em memoria
 	TickerData = loadTickerData(a_FilesInfo)
-	logger.Log(m_strLogFile, c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName+" : "+getTickerData(TickerData))
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName+" : "+getTickerData(TickerData))
 
 	// 2 - Inicia o processamento dos dados (um por um)
 	processEvents(&TickerData, &DataInfo)
-	logger.Log(m_strLogFile, c_strMethodName, "Ticker events processed successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Ticker events processed successfully : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 
 	// 3 - Exporta resultados da detecção
 	exportResults(&TickerData)
 
-	logger.Log(m_strLogFile, c_strMethodName, "End : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End : strTicker="+a_FilesInfo.TradeRunInfo.strTickerName)
 }
