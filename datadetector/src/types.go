@@ -7,6 +7,8 @@ import (
 
 type OfferOperationType byte
 
+type DetectionOperationType byte
+
 const (
 	ofopCreation  OfferOperationType = '0' // evento de criacao da oferta
 	ofopCancel                       = '4' // evento de cancelamento da oferta
@@ -17,13 +19,32 @@ const (
 	ofopUnknown                      = iota
 )
 
+const (
+	dtopSpoofing               DetectionOperationType = 0 // deteccao de spoofing - cenario tradicional
+	dtopLayering                                      = 1 // deteccao de layering - cenario tradicional
+	dtopLayeringModifiedOffers                        = 2 // deteccao de layering - cenario de modificacao de preco das ofertas
+	dtopUnknown                                       = iota
+)
+
 type TradeRunInfoType struct {
+	ProgressInfo  ProgressInfoType
+	nCurrentRun   int
 	strTickerName string
 	dtTickerDate  time.Time
 }
 
+type ProgressInfoType struct {
+	nMaxProgress     int // usando o valor do campo nGenerationID (esta ordenado mo arquivo externo)
+	nCurrentProgress int // 0 a 100
+}
+
 type InfoForAllTickersType struct {
 	nProcessors int
+}
+
+type ReportRunType struct {
+	nTickers int
+	dtStart  time.Time
 }
 
 type FilesInfoType struct {
@@ -80,6 +101,11 @@ type DataInfoType struct {
 	lstSellBookPrice list.List // doubly linked list dos grupos de preco de venda
 	lstBuyOffers     list.List // doubly linked list das ofertas de compra no livro
 	lstSellOffers    list.List // doubly linked list das ofertas de venda no livro
+	lstDetectionData []DetectionDataType
+}
+
+type DetectionDataType struct {
+	nOperation DetectionOperationType
 }
 
 type BookPriceType struct {
@@ -98,7 +124,7 @@ type BookOfferType struct {
 }
 
 type OfferDataType struct {
-	chOperation      OfferOperationType
+	nOperation       OfferOperationType
 	dtTime           time.Time
 	strAccount       string
 	nGenerationID    int

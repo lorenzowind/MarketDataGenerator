@@ -14,7 +14,7 @@ func processDetection(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_
 	// So realiza a deteccao caso tenha encontrado os valores de benchmark
 	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
 		// Verifica se eh evento de trade
-		if a_OfferData.chOperation == ofopTrade {
+		if a_OfferData.nOperation == ofopTrade {
 			// Armazena estado do livro
 			processTradePrice(a_TickerData, a_DataInfo, a_OfferData)
 			// Layering - detecta cenario tradicional
@@ -22,7 +22,7 @@ func processDetection(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_
 			// Verifica se eh quaisquer outro evento
 		} else {
 			// Verifica se eh evento de edicao
-			if a_OfferData.chOperation == ofopEdit {
+			if a_OfferData.nOperation == ofopEdit {
 				// Layering - detecta cenario de modificacao de preco das ofertas
 				checkLayeringModifiedOffers(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent)
 			}
@@ -54,22 +54,28 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 	var (
 		OriginalSpoofingOffer *OfferDataType
 		OriginalSpoofingTrade *OfferDataType
-		lstSpoofingTrades     []*OfferDataType
+		// lstSpoofingTrades     []*OfferDataType
 	)
 	OriginalSpoofingOffer = getOriginalSpoofingOffer(a_TickerData, a_OfferData)
 	if OriginalSpoofingOffer != nil {
 		OriginalSpoofingTrade = getOriginalSpoofingTrade(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent, OriginalSpoofingOffer)
 		if OriginalSpoofingTrade != nil {
-			lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
+			// Concatena deteccao (dtopSpoofing)
+			a_DataInfo.lstDetectionData = append(a_DataInfo.lstDetectionData, DetectionDataType{
+				nOperation: dtopSpoofing,
+			})
 
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing detected")
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
-			for _, SpoofingTrade := range lstSpoofingTrades {
-				logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
-			}
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Spoofing detected : dtopSpoofing : nCurrent="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
+
+			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
+			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
+			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
+
+			// lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
+			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
+			// for _, SpoofingTrade := range lstSpoofingTrades {
+			// 	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
+			// }
 		}
 	}
 }
@@ -97,7 +103,7 @@ func getOriginalSpoofingOffer(a_TickerData *TickerDataType, a_OfferData OfferDat
 		// Verifica se oferta eh igual a atual, pois tem o mesmo ID de geracao
 		if lstOfferData[nIndex].nGenerationID == a_OfferData.nGenerationID {
 			// Se oferta atual deixou de expressiva ou eh igual a cancelada
-			if !IsExpressiveOffer(a_TickerData, a_OfferData) || a_OfferData.chOperation == ofopCancel {
+			if !IsExpressiveOffer(a_TickerData, a_OfferData) || a_OfferData.nOperation == ofopCancel {
 				if OriginalSpoofingOffer != nil {
 					// Verifica se validade da oferta expressiva esta entre o tempo de benchmark de intervalo entre negocios
 					if IsBetweenTradeInverval(a_TickerData, a_OfferData.dtTime, OriginalSpoofingOffer.dtTime) {
@@ -191,6 +197,7 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfo
 	return nil
 }
 
+//lint:ignore U1000 Ignore unused function
 func getSpoofingTrades(a_TickerData *TickerDataType, a_bBuyEvent bool, a_OriginalSpoofingTrade *OfferDataType) []*OfferDataType {
 	var (
 		lstSpoofingTrades []*OfferDataType
@@ -234,5 +241,11 @@ func IsExpressiveOffer(a_TickerData *TickerDataType, a_OfferData OfferDataType) 
 	return float64(a_OfferData.nTotalQuantity) >= a_TickerData.AuxiliarData.BenchmarkData.sExpressiveOfferSize
 }
 
-func exportResults(a_TickerData *TickerDataType) {
+func exportResults(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
+	const (
+		c_strMethodName = "alerts.exportResults"
+	)
+	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopSpoofing="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayering="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopLayering))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayeringModifiedOffers : nResults="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopLayeringModifiedOffers))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
 }

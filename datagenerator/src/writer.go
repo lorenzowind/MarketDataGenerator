@@ -100,7 +100,7 @@ func saveOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 					OfferData = Temp.Value.(OfferDataType)
 					// Escreve os dados da oferta
 					err = writer.Write([]string{
-						string(OfferData.chOperation),                       // cod_evento_oferta
+						string(OfferData.nOperation),                        // cod_evento_oferta
 						a_TickerData.FilesInfo.GenerationInfo.strTickerName, // cod_simbolo_instrumento_negociacao (geracao - normalizado)
 						getTimeAsCustomTimestamp(OfferData.dtTime),          // dthr_inclusao_oferta (geracao - normalizado)
 						strconv.Itoa(OfferData.nGenerationID),               // num_geracao_oferta

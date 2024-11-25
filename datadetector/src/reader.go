@@ -33,7 +33,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strBuyPath)
 
 	if bFileExists {
-		logger.Log(m_LogInfo, "Main", c_strMethodName, "Buy file found : strBuyPath="+strBuyPath)
+		logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, "Buy file found : strBuyPath="+strBuyPath)
 	} else {
 		strBuyPath = ""
 	}
@@ -42,7 +42,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strSellPath)
 
 	if bFileExists {
-		logger.Log(m_LogInfo, "Main", c_strMethodName, "Sell file found : strSellPath="+strSellPath)
+		logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, "Sell file found : strSellPath="+strSellPath)
 	} else {
 		strSellPath = ""
 	}
@@ -51,7 +51,7 @@ func getUniqueTickerFiles(a_TradeRunInfo TradeRunInfoType) (FilesInfoType, error
 	bFileExists = checkFileExists(strBenchmarkPath)
 
 	if bFileExists {
-		logger.Log(m_LogInfo, "Main", c_strMethodName, "Benchmarks file found : strBenchmarkPath="+strBenchmarkPath)
+		logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, "Benchmarks file found : strBenchmarkPath="+strBenchmarkPath)
 	} else {
 		strBenchmarkPath = ""
 	}
@@ -92,7 +92,7 @@ func getAllTickersFiles() []FilesInfoType {
 	arrDir, err = os.ReadDir(strInputPath)
 
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to get the directory : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, "Fail to get the directory : "+err.Error())
 		return arrTickersInfo
 	}
 
@@ -103,7 +103,7 @@ func getAllTickersFiles() []FilesInfoType {
 			strFileName = filepath.Base(dir.Name())
 			arrFileInfo = strings.Split(strFileName, "_")
 
-			// So verifica arquivo no formato yyyy-mm-dd_<TICKER>_<TRADE/BUY/SELL>.csv
+			// So verifica arquivo no formato yyyy-mm-dd_<TICKER>_<BUY/SELL>.csv
 			if len(arrFileInfo) == 3 {
 				dtTickerDate, err = validateDateString(arrFileInfo[0])
 				if err == nil {
@@ -128,9 +128,14 @@ func getAllTickersFiles() []FilesInfoType {
 }
 
 func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
+	const (
+		c_strMethodName = "reader.loadTickerData"
+	)
 	var (
 		TickerData TickerDataType
 	)
+	logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_FilesInfo.TradeRunInfo)+" : Begin")
+
 	TickerData.FilesInfo = &a_FilesInfo
 
 	TickerData.AuxiliarData.hshFullTrade = make(map[int]*FullTradeType)
@@ -160,6 +165,9 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 			TickerData.TempData.hshTradePrice = make(map[int]TradePriceType)
 		}
 	}
+
+	logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_FilesInfo.TradeRunInfo)+" : Ticker data loaded successfully : "+getTickerData(&TickerData))
+	logger.Log(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_FilesInfo.TradeRunInfo)+" : End")
 
 	return TickerData
 }
@@ -195,17 +203,17 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 			for _, arrRecord = range arrFullRecords[1:] {
 				// Verifica tamanho da linha
 				if len(arrRecord) != c_nLastIndex+1 {
-					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
 					continue
 				}
 				// Verifica se encontrou benchmark do ticker
 				if a_TickerData.FilesInfo.TradeRunInfo.strTickerName == arrRecord[c_nTickerIndex] {
 					// Verifica benchmark de intervalo entre negocios
-					a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval = getDurationFromFile(arrRecord, c_nAvgTradeIntervalIndex)
+					a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval = getDurationFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nAvgTradeIntervalIndex)
 					// Verifica benchmark da media da quantidade de lotes
-					a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize = getAvgOfferSizeFromFile(arrRecord, c_nAvgOfferSizeIndex)
+					a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize = getAvgOfferSizeFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nAvgOfferSizeIndex)
 					// Verifica benchmark do desvio padrao da quantidade de lotes
-					a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize = getSDOfferSizeFromFile(arrRecord, c_nSmallerSDOfferSizeIndex, c_nBiggerSDOfferSizeIndex)
+					a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize = getSDOfferSizeFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nSmallerSDOfferSizeIndex, c_nBiggerSDOfferSizeIndex)
 
 					bFound = true
 					break
@@ -213,15 +221,15 @@ func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bo
 			}
 
 			if !bFound {
-				logger.LogWarning(m_LogInfo, "Main", c_strMethodName, "Benchmark for ticker not found : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+				logger.LogWarning(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Benchmark for ticker not found : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
 			}
 
 			defer file.Close()
 		} else {
-			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to read the records : "+err.Error())
+			logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Fail to read the records : "+err.Error())
 		}
 	} else {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Fail to open the file : "+err.Error())
 	}
 
 	return bFound
@@ -270,31 +278,31 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 			for _, arrRecord = range arrFullRecords[1:] {
 				// Verifica tamanho da linha
 				if len(arrRecord) != c_nLastIndex+1 {
-					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
 					continue
 				}
 				// Verifica natureza da operacao
-				OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
+				OfferData.nOperation = getOfferOperationFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nOperationIndex)
 				// Verifica timestamp da oferta
-				OfferData.dtTime = getTimeFromFile(arrRecord, c_nTimeIndex)
+				OfferData.dtTime = getTimeFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nTimeIndex)
 				// Verifica numero de geracao da oferta
-				OfferData.nGenerationID = getOfferGenerationIDFromFile(arrRecord, c_nGenerationIDIndex)
+				OfferData.nGenerationID = getOfferGenerationIDFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nGenerationIDIndex)
 				// Verifica conta
 				OfferData.strAccount = arrRecord[c_nAccountIndex]
 				// Verifica numero do negocio relacionado
-				OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
+				OfferData.nTradeID = getTradeIDFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nTradeIDIndex)
 				// Verifica numero primario da oferta
-				OfferData.nPrimaryID = getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex)
+				OfferData.nPrimaryID = getOfferPrimaryIDFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nPrimaryIDIndex)
 				// Verifica numero secundario da oferta
-				OfferData.nSecondaryID = getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex)
+				OfferData.nSecondaryID = getOfferSecondaryIDFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nSecondaryIDIndex)
 				// Verifica quantidade restante
-				OfferData.nCurrentQuantity = getCurrentQuantityFromFile(arrRecord, c_nCurrentQuantityIndex)
+				OfferData.nCurrentQuantity = getCurrentQuantityFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nCurrentQuantityIndex)
 				// Verifica quantidade negociada ate o momento
-				OfferData.nTradeQuantity = getTradeQuantityFromFile(arrRecord, c_nTradeQuantityIndex)
+				OfferData.nTradeQuantity = getTradeQuantityFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nTradeQuantityIndex)
 				// Verifica quantidade total
-				OfferData.nTotalQuantity = getTotalQuantityFromFile(arrRecord, c_nTotalQuantityIndex)
+				OfferData.nTotalQuantity = getTotalQuantityFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nTotalQuantityIndex)
 				// Verifica preco
-				OfferData.sPrice = getPriceFromFile(arrRecord, c_nPriceIndex)
+				OfferData.sPrice = getPriceFromFile(a_TickerData.FilesInfo.TradeRunInfo, arrRecord, c_nPriceIndex)
 
 				lstData.PushBack(OfferData)
 
@@ -303,10 +311,10 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 
 			defer file.Close()
 		} else {
-			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to read the records : "+err.Error())
+			logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Fail to read the records : "+err.Error())
 		}
 	} else {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Fail to open the file : "+err.Error())
 	}
 }
 
@@ -318,7 +326,7 @@ func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData Offer
 		lstOfferData []*OfferDataType
 		bKeyExists   bool
 	)
-	if a_OfferData.chOperation == ofopTrade {
+	if a_OfferData.nOperation == ofopTrade {
 		// Relaciona evento da oferta referente a ocorrencia de um negocio
 		FullTrade, bKeyExists = a_TickerData.AuxiliarData.hshFullTrade[a_OfferData.nTradeID]
 		if !bKeyExists {
@@ -361,7 +369,7 @@ func relateOfferIntoAuxiliarData(a_TickerData *TickerDataType, a_OfferData Offer
 	a_TickerData.AuxiliarData.hshOffersBySecondary[a_OfferData.nSecondaryID] = append(lstOfferData, &a_OfferData)
 }
 
-func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperationType {
+func getOfferOperationFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) OfferOperationType {
 	const (
 		c_strMethodName = "reader.getOfferOperationFromFile"
 	)
@@ -378,15 +386,15 @@ func getOfferOperationFromFile(a_arrRecord []string, a_nIndex int) OfferOperatio
 	} else if a_arrRecord[a_nIndex][0] == 'D' {
 		return ofopReafirmed
 	}
-	logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer operation type : "+a_arrRecord[a_nIndex])
+	logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer operation type : "+a_arrRecord[a_nIndex])
 	return ofopUnknown
 }
 
-func getDurationFromFile(a_arrRecord []string, a_nIndex int) time.Duration {
-	return getTimeFromFile(a_arrRecord, a_nIndex).Sub(time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC))
+func getDurationFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) time.Duration {
+	return getTimeFromFile(a_TradeRunInfo, a_arrRecord, a_nIndex).Sub(time.Date(0, 1, 1, 0, 0, 0, 0, time.UTC))
 }
 
-func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
+func getTimeFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) time.Time {
 	const (
 		c_strMethodName = "reader.getTimeFromFile"
 	)
@@ -396,12 +404,12 @@ func getTimeFromFile(a_arrRecord []string, a_nIndex int) time.Time {
 	)
 	dtTime, err = validateTimestampString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid timestamp : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid timestamp : "+err.Error())
 	}
 	return dtTime
 }
 
-func getOfferGenerationIDFromFile(a_arrRecord []string, a_nIndex int) int {
+func getOfferGenerationIDFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getOfferGenerationIDFromFile"
 	)
@@ -411,12 +419,12 @@ func getOfferGenerationIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferGenerationID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer generation ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer generation ID : "+err.Error())
 	}
 	return nOfferGenerationID
 }
 
-func getTradeIDFromFile(a_arrRecord []string, a_nIndex int) int {
+func getTradeIDFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getTradeIDFromFile"
 	)
@@ -426,12 +434,12 @@ func getTradeIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid trade ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid trade ID : "+err.Error())
 	}
 	return nID
 }
 
-func getOfferPrimaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
+func getOfferPrimaryIDFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getOfferPrimaryIDFromFile"
 	)
@@ -441,12 +449,12 @@ func getOfferPrimaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferPrimaryID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer primary ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer primary ID : "+err.Error())
 	}
 	return nOfferPrimaryID
 }
 
-func getOfferSecondaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
+func getOfferSecondaryIDFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getOfferSecondaryIDFromFile"
 	)
@@ -456,12 +464,12 @@ func getOfferSecondaryIDFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nOfferSecondaryID, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer secondary ID : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer secondary ID : "+err.Error())
 	}
 	return nOfferSecondaryID
 }
 
-func getTradeQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
+func getTradeQuantityFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getTradeQuantityFromFile"
 	)
@@ -471,12 +479,12 @@ func getTradeQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid trade quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid trade quantity : "+err.Error())
 	}
 	return nQuantity
 }
 
-func getPriceFromFile(a_arrRecord []string, a_nIndex int) float64 {
+func getPriceFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) float64 {
 	const (
 		c_strMethodName = "reader.getPriceFromFile"
 	)
@@ -486,12 +494,12 @@ func getPriceFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	)
 	sPrice, err = validateFloatString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid price : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid price : "+err.Error())
 	}
 	return sPrice
 }
 
-func getCurrentQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
+func getCurrentQuantityFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getCurrentQuantityFromFile"
 	)
@@ -501,12 +509,12 @@ func getCurrentQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nCurrentQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid current quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid current quantity : "+err.Error())
 	}
 	return nCurrentQuantity
 }
 
-func getTotalQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
+func getTotalQuantityFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) int {
 	const (
 		c_strMethodName = "reader.getTotalQuantityFromFile"
 	)
@@ -516,12 +524,12 @@ func getTotalQuantityFromFile(a_arrRecord []string, a_nIndex int) int {
 	)
 	nTotalQuantity, err = validateIntString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid total quantity : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid total quantity : "+err.Error())
 	}
 	return nTotalQuantity
 }
 
-func getAvgOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
+func getAvgOfferSizeFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nIndex int) float64 {
 	const (
 		c_strMethodName = "reader.getAvgOfferSizeFromFile"
 	)
@@ -531,12 +539,12 @@ func getAvgOfferSizeFromFile(a_arrRecord []string, a_nIndex int) float64 {
 	)
 	sAvgOfferSize, err = validateFloatString(a_arrRecord[a_nIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size average : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer size average : "+err.Error())
 	}
 	return sAvgOfferSize
 }
 
-func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBiggerIndex int) float64 {
+func getSDOfferSizeFromFile(a_TradeRunInfo TradeRunInfoType, a_arrRecord []string, a_nSmallerIndex int, a_nBiggerIndex int) float64 {
 	const (
 		c_strMethodName = "reader.getSDOfferSizeFromFile"
 	)
@@ -547,12 +555,12 @@ func getSDOfferSizeFromFile(a_arrRecord []string, a_nSmallerIndex int, a_nBigger
 	)
 	sSmallerSDOfferSize, err = validateFloatString(a_arrRecord[a_nSmallerIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer size smaller sd : "+err.Error())
 		return 0
 	}
 	sBiggerSDOfferSize, err = validateFloatString(a_arrRecord[a_nBiggerIndex])
 	if err != nil {
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid offer size smaller sd : "+err.Error())
+		logger.LogError(m_LogInfo, "Ticker-External-Data", c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : Invalid offer size smaller sd : "+err.Error())
 		return 0
 	}
 

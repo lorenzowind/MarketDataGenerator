@@ -13,15 +13,35 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 	var (
 		NextBuy   *list.Element
 		NextSell  *list.Element
+		LastBuy   *list.Element
+		LastSell  *list.Element
 		BuyData   OfferDataType
 		SellData  OfferDataType
 		OfferData OfferDataType
 		EventInfo EventInfoType
+		nProgress int
 	)
-	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Begin")
 
 	NextBuy = a_TickerData.lstBuy.Front()
 	NextSell = a_TickerData.lstSell.Front()
+
+	LastBuy = a_TickerData.lstBuy.Back()
+	LastSell = a_TickerData.lstSell.Back()
+
+	// Obtem o progresso do ticker com base no valor maximo lido
+	if LastBuy != nil {
+		BuyData = LastBuy.Value.(OfferDataType)
+		OfferData = BuyData
+		a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nMaxProgress = OfferData.nGenerationID
+	}
+	if LastSell != nil {
+		SellData = LastSell.Value.(OfferDataType)
+		OfferData = SellData
+		if OfferData.nGenerationID > a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nMaxProgress {
+			a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nMaxProgress = OfferData.nGenerationID
+		}
+	}
 
 	EventInfo.bBuyEventsEnd = false
 	EventInfo.bSellEventsEnd = false
@@ -50,7 +70,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 					EventInfo.bSellEventsEnd = true
 				}
 			} else {
-				logger.LogError(m_LogInfo, "Main", c_strMethodName, "Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
+				logger.LogError(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Generation ID is equal for buy and sell offer : nGenerationID="+strconv.Itoa(BuyData.nGenerationID))
 			}
 		} else if NextBuy != nil && !EventInfo.bBuyEventsEnd {
 			BuyData = NextBuy.Value.(OfferDataType)
@@ -74,12 +94,21 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 			}
 		} else {
 			EventInfo.bProcessEvent = false
-			logger.LogError(m_LogInfo, "Main", c_strMethodName, "NextBuy and NextSell are nil")
+			logger.LogError(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : NextBuy and NextSell are nil")
 		}
 		// Processa evento da oferta de compra ou venda
 		if EventInfo.bProcessEvent {
-			processOffer(a_DataInfo, OfferData, EventInfo.bBuyEvent)
+			processOffer(a_TickerData, a_DataInfo, OfferData, EventInfo.bBuyEvent)
 			processDetection(a_TickerData, a_DataInfo, OfferData, EventInfo.bBuyEvent)
+
+			// Calcula novo progresso do ticker se eh um evento de criacao da oferta
+			if OfferData.nOperation == ofopCreation && checkIfHasSameDate(OfferData.dtTime, a_TickerData.FilesInfo.TradeRunInfo.dtTickerDate) {
+				nProgress = getProgress(OfferData.nGenerationID, a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nMaxProgress)
+				if nProgress > a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nCurrentProgress {
+					a_TickerData.FilesInfo.TradeRunInfo.ProgressInfo.nCurrentProgress = nProgress
+					logger.Log(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : nProgress="+strconv.Itoa(nProgress)+"%")
+				}
+			}
 		}
 		// Condicao de parada -> os eventos foram processados
 		if EventInfo.bBuyEventsEnd && EventInfo.bSellEventsEnd {
@@ -87,14 +116,15 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 		}
 	}
 
-	logger.Log(m_LogInfo, "Main", c_strMethodName, "End : strTicker="+a_TickerData.FilesInfo.TradeRunInfo.strTickerName)
+	logger.Log(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Ticker events processed successfully")
+	logger.Log(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : End")
 }
 
-func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
+func processOffer(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
 	const (
 		c_strMethodName = "manager.processOffer"
 	)
-	switch a_OfferData.chOperation {
+	switch a_OfferData.nOperation {
 	case ofopCreation:
 		processEventCreation(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopCancel:
@@ -108,9 +138,9 @@ func processOffer(a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEve
 	case ofopTrade:
 		processEventTrade(a_DataInfo, a_OfferData, a_bBuyEvent)
 	case ofopUnknown:
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Unknown offer operation : chOperation="+string(a_OfferData.chOperation))
+		logger.LogError(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Unknown offer operation : nOperation="+string(a_OfferData.nOperation))
 	default:
-		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Default offer operation : chOperation="+string(a_OfferData.chOperation))
+		logger.LogError(m_LogInfo, "Ticker-Internal-Data", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Default offer operation : nOperation="+string(a_OfferData.nOperation))
 	}
 }
 

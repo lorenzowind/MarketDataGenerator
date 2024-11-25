@@ -108,7 +108,6 @@ func generateOffersBook(a_FilesInfo FilesInfoType) {
 
 	// 2 - Carrega os dados a partir dos arquivos e armazena tudo em memoria (ja normalizados e mascarados)
 	TickerData = loadTickerData(a_FilesInfo)
-	logger.Log(m_LogInfo, "Main", c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.GenerationInfo.strTickerName+" : "+getTickerData(TickerData))
 
 	// 3 - Salva valores nos arquivos finais
 	saveOffersBook(TickerData)

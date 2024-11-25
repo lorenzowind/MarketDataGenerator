@@ -94,9 +94,14 @@ func getOffersBook(a_FilesInfo *FilesInfoType) {
 }
 
 func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
+	const (
+		c_strMethodName = "reader.loadTickerData"
+	)
 	var (
 		TickerData TickerDataType
 	)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
+
 	TickerData.FilesInfo = &a_FilesInfo
 
 	TickerData.MaskDataInfo.hshMaskAccount = make(map[string]int)
@@ -117,6 +122,9 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	if a_FilesInfo.strBenchmarkPath != "" {
 		TickerData.BenchmarkData.bHasBenchmarkData = tryLoadBenchmarkFromFile(a_FilesInfo.strReferenceBenchmarkPath, &TickerData)
 	}
+
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Ticker data loaded successfully : strTicker="+a_FilesInfo.GenerationInfo.strTickerName+" : "+getTickerData(TickerData))
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
 
 	return TickerData
 }
@@ -211,6 +219,7 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 		file           *os.File
 		reader         *csv.Reader
 		OfferData      OfferDataType
+		nPrimaryID     int
 	)
 	file, err = os.Open(a_strPath)
 	if err == nil {
@@ -233,7 +242,7 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 					continue
 				}
 				// Verifica natureza da operacao
-				OfferData.chOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
+				OfferData.nOperation = getOfferOperationFromFile(arrRecord, c_nOperationIndex)
 				// Verifica timestamp da oferta e faz normalizacao
 				OfferData.dtTime = normalizeTime(getTimeFromFile(arrRecord, c_nTimeIndex), a_TickerData.FilesInfo.GenerationInfo.dtReferenceTickerDate, a_TickerData.FilesInfo.GenerationInfo.dtTickerDate)
 				// Verifica numero de geracao da oferta
@@ -242,8 +251,15 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 				OfferData.strAccount = maskStringToIntString(arrRecord[c_nAccountIndex], a_TickerData.MaskDataInfo.hshMaskAccount, &a_TickerData.MaskDataInfo.nCurrentAccount)
 				// Verifica numero do negocio relacionado
 				OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
+
 				// Verifica numero primario da oferta e faz mascaramento
-				OfferData.nPrimaryID = maskIntToInt(getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex), a_TickerData.MaskDataInfo.hshMaskPrimaryID, &a_TickerData.MaskDataInfo.nCurrentPrimaryID)
+				// Alem disso, verifica regra de excecao onde o evento de criacao aparece com o mesmo numero primario da oferta anterior
+				nPrimaryID = maskIntToInt(getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex), a_TickerData.MaskDataInfo.hshMaskPrimaryID, &a_TickerData.MaskDataInfo.nCurrentPrimaryID)
+				if OfferData.nPrimaryID != 0 && OfferData.nPrimaryID == nPrimaryID && OfferData.nOperation == ofopCreation {
+					OfferData.nOperation = ofopEdit
+				}
+				OfferData.nPrimaryID = nPrimaryID
+
 				// Verifica numero secundario da oferta e faz mascaramento
 				OfferData.nSecondaryID = maskIntToInt(getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex), a_TickerData.MaskDataInfo.hshMaskSecondaryID, &a_TickerData.MaskDataInfo.nCurrentSecondaryD)
 				// Verifica quantidade restante

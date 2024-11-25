@@ -261,7 +261,7 @@ func getOfferData(a_OfferData OfferDataType) string {
 	var (
 		strResult string
 	)
-	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = "nOperation=" + string(a_OfferData.nOperation)
 	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
 	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
 	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)

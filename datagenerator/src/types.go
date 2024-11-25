@@ -60,7 +60,7 @@ type BenchmarkDataType struct {
 }
 
 type OfferDataType struct {
-	chOperation      OfferOperationType
+	nOperation       OfferOperationType
 	dtTime           time.Time
 	strAccount       string
 	nGenerationID    int

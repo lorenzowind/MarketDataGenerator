@@ -278,7 +278,7 @@ func checkFileExists(a_strFullPath string) bool {
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListOffers(a_strParentLog string, a_lstData list.List) {
+func printListOffers(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListOffers"
 	)
@@ -294,21 +294,21 @@ func printListOffers(a_strParentLog string, a_lstData list.List) {
 		for Temp != nil {
 			OfferData = Temp.Value.(OfferDataType)
 			// Loga os dados da oferta
-			printOfferData(a_strParentLog, OfferData)
+			printOfferData(a_TradeRunInfo, a_strParentLog, OfferData)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printOfferData(a_strParentLog string, a_OfferData OfferDataType) {
+func printOfferData(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_OfferData OfferDataType) {
 	const (
 		c_strMethodName = "utils.printOfferData"
 	)
 	var (
 		strResult string
 	)
-	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = "nOperation=" + string(a_OfferData.nOperation)
 	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
 	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
 	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)
@@ -320,7 +320,7 @@ func printOfferData(a_strParentLog string, a_OfferData OfferDataType) {
 	strResult = strResult + " : nTotalQuantity=" + strconv.Itoa(a_OfferData.nTotalQuantity)
 	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_OfferData.sPrice, 'f', -1, 64)
 
-	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : "+strResult)
 }
 
 //lint:ignore U1000 Ignore unused function
@@ -328,7 +328,7 @@ func getOfferData(a_OfferData OfferDataType) string {
 	var (
 		strResult string
 	)
-	strResult = "chOperation=" + string(a_OfferData.chOperation)
+	strResult = "nOperation=" + string(a_OfferData.nOperation)
 	strResult = strResult + " : dtTime=" + a_OfferData.dtTime.String()
 	strResult = strResult + " : nGenerationID=" + strconv.Itoa(a_OfferData.nGenerationID)
 	strResult = strResult + " : nPrimaryID=" + strconv.Itoa(a_OfferData.nPrimaryID)
@@ -344,7 +344,7 @@ func getOfferData(a_OfferData OfferDataType) string {
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListBookOffers(a_strParentLog string, a_lstData list.List) {
+func printListBookOffers(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListBookOffers"
 	)
@@ -360,14 +360,14 @@ func printListBookOffers(a_strParentLog string, a_lstData list.List) {
 		for Temp != nil {
 			BookOffer = Temp.Value.(BookOfferType)
 			// Loga os dados da oferta
-			printBookOffer(a_strParentLog, BookOffer)
+			printBookOffer(a_TradeRunInfo, a_strParentLog, BookOffer)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printBookOffer(a_strParentLog string, a_BookOffer BookOfferType) {
+func printBookOffer(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_BookOffer BookOfferType) {
 	const (
 		c_strMethodName = "utils.printBookOffer"
 	)
@@ -380,11 +380,11 @@ func printBookOffer(a_strParentLog string, a_BookOffer BookOfferType) {
 	strResult = strResult + " : strAccount=" + a_BookOffer.strAccount
 	strResult = strResult + " : sPrice=" + strconv.FormatFloat(a_BookOffer.sPrice, 'f', -1, 64)
 
-	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : "+strResult)
 }
 
 //lint:ignore U1000 Ignore unused function
-func printListBookPrices(a_strParentLog string, a_lstData list.List) {
+func printListBookPrices(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_lstData list.List) {
 	const (
 		c_strMethodName = "utils.printListBookPrices"
 	)
@@ -400,14 +400,14 @@ func printListBookPrices(a_strParentLog string, a_lstData list.List) {
 		for Temp != nil {
 			BookPrice = Temp.Value.(BookPriceType)
 			// Loga os dados da oferta
-			printBookPrice(a_strParentLog, BookPrice)
+			printBookPrice(a_TradeRunInfo, a_strParentLog, BookPrice)
 			// Obtem o proximo item
 			Temp = Temp.Next()
 		}
 	}
 }
 
-func printBookPrice(a_strParentLog string, a_BookPrice BookPriceType) {
+func printBookPrice(a_TradeRunInfo TradeRunInfoType, a_strParentLog string, a_BookPrice BookPriceType) {
 	const (
 		c_strMethodName = "utils.printBookOffer"
 	)
@@ -418,10 +418,10 @@ func printBookPrice(a_strParentLog string, a_BookPrice BookPriceType) {
 	strResult = strResult + " : nCount=" + strconv.Itoa(a_BookPrice.nCount)
 	strResult = strResult + " : nQuantity=" + strconv.Itoa(a_BookPrice.nQuantity)
 
-	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strResult)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, getHeaderRun(a_TradeRunInfo)+" : "+strResult)
 }
 
-func getTickerData(a_TickerData TickerDataType) string {
+func getTickerData(a_TickerData *TickerDataType) string {
 	var (
 		strResult string
 	)
@@ -443,4 +443,25 @@ func getTickerData(a_TickerData TickerDataType) string {
 	}
 
 	return strResult
+}
+
+func getDetectionDataLength(a_lstDetectionData []DetectionDataType, a_nOperation DetectionOperationType) int {
+	var (
+		nIndex  int
+		nResult int
+	)
+	for nIndex = 0; nIndex < len(a_lstDetectionData); nIndex++ {
+		if a_lstDetectionData[nIndex].nOperation == a_nOperation {
+			nResult++
+		}
+	}
+	return nResult
+}
+
+func getHeaderRun(a_TradeRunInfo TradeRunInfoType) string {
+	return "[" + strconv.Itoa(a_TradeRunInfo.nCurrentRun) + "]"
+}
+
+func getProgress(a_nLeftValue, a_nRightValue int) int {
+	return int((a_nLeftValue * 100) / (a_nRightValue))
 }
