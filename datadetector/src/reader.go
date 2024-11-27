@@ -576,36 +576,36 @@ func calculateExpressiveOfferSize(a_TickerData *TickerDataType) float64 {
 
 func getOffersByPrimaryID(a_TickerData *TickerDataType, a_nPrimaryID int) []*OfferDataType {
 	var (
-		lstOfferData []*OfferDataType
+		arrOfferData []*OfferDataType
 		bKeyExists   bool
 	)
-	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersByPrimary[a_nPrimaryID]
+	arrOfferData, bKeyExists = a_TickerData.AuxiliarData.hshOffersByPrimary[a_nPrimaryID]
 	if bKeyExists {
-		return lstOfferData
+		return arrOfferData
 	}
 	return make([]*OfferDataType, 0)
 }
 
 func getTradesBySecondaryID(a_TickerData *TickerDataType, a_nSecondaryID int) []*OfferDataType {
 	var (
-		lstOfferData []*OfferDataType
+		arrOfferData []*OfferDataType
 		bKeyExists   bool
 	)
-	lstOfferData, bKeyExists = a_TickerData.AuxiliarData.hshTradesBySecondary[a_nSecondaryID]
+	arrOfferData, bKeyExists = a_TickerData.AuxiliarData.hshTradesBySecondary[a_nSecondaryID]
 	if bKeyExists {
-		return lstOfferData
+		return arrOfferData
 	}
 	return make([]*OfferDataType, 0)
 }
 
 func getTradesByAccount(a_TickerData *TickerDataType, a_strAccount string) []*FullTradeType {
 	var (
-		lstFullTrade []*FullTradeType
+		arrFullTrade []*FullTradeType
 		bKeyExists   bool
 	)
-	lstFullTrade, bKeyExists = a_TickerData.AuxiliarData.hshTradesByAccount[a_strAccount]
+	arrFullTrade, bKeyExists = a_TickerData.AuxiliarData.hshTradesByAccount[a_strAccount]
 	if bKeyExists {
-		return lstFullTrade
+		return arrFullTrade
 	}
 	return make([]*FullTradeType, 0)
 }

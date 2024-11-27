@@ -39,11 +39,11 @@ func getReferencePath() string {
 }
 
 func getInputBuyPath() string {
-	return getDataPath() + c_strReferenceFolder + "/" + c_strInputBuyFolder
+	return getDataPath() + c_strReferenceFolder + c_strInputBuyFolder
 }
 
 func getInputSellPath() string {
-	return getDataPath() + c_strReferenceFolder + "/" + c_strInputSellFolder
+	return getDataPath() + c_strReferenceFolder + c_strInputSellFolder
 }
 
 func getReferenceBenchmark() string {

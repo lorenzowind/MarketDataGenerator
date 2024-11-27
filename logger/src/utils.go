@@ -46,7 +46,7 @@ func createLogFile(a_LogInfo LogInfoType, a_strLogName string) (LogInfoType, err
 
 	defer file.Close()
 
-	a_LogInfo.lstLogFiles = append(a_LogInfo.lstLogFiles, strFullPath)
+	a_LogInfo.arrLogFiles = append(a_LogInfo.arrLogFiles, strFullPath)
 
 	return a_LogInfo, nil
 }
@@ -86,7 +86,7 @@ func createLogFolder(a_strPath string) (LogInfoType, error) {
 
 	return LogInfoType{
 		strLogFolder: strFullPath,
-		lstLogFiles:  make([]string, 0),
+		arrLogFiles:  make([]string, 0),
 	}, nil
 }
 
@@ -132,7 +132,7 @@ func getLogsPath(a_LogInfo LogInfoType, a_strPath string) string {
 		strPath     string
 		strFileName string
 	)
-	for _, strPath = range a_LogInfo.lstLogFiles {
+	for _, strPath = range a_LogInfo.arrLogFiles {
 		// Obtem nome do arquivo de log
 		strFileName = filepath.Base(strPath)
 		// Verifica se nome eh igual ao parametro e retorna

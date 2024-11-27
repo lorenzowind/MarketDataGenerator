@@ -101,7 +101,7 @@ type DataInfoType struct {
 	lstSellBookPrice list.List // doubly linked list dos grupos de preco de venda
 	lstBuyOffers     list.List // doubly linked list das ofertas de compra no livro
 	lstSellOffers    list.List // doubly linked list das ofertas de venda no livro
-	lstDetectionData []DetectionDataType
+	arrDetectionData []DetectionDataType
 }
 
 type DetectionDataType struct {

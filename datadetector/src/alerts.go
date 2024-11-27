@@ -55,26 +55,26 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 		OriginalSpoofingOffer *OfferDataType
 		OriginalSpoofingTrade *OfferDataType
 		// SpoofingTrade         *OfferDataType
-		// lstSpoofingTrades     []*OfferDataType
+		// arrSpoofingTrades     []*OfferDataType
 	)
 	OriginalSpoofingOffer = getOriginalSpoofingOffer(a_TickerData, a_OfferData)
 	if OriginalSpoofingOffer != nil {
 		OriginalSpoofingTrade = getOriginalSpoofingTrade(a_TickerData, a_DataInfo, a_OfferData, a_bBuyEvent, OriginalSpoofingOffer)
 		if OriginalSpoofingTrade != nil {
 			// Concatena deteccao (dtopSpoofing)
-			a_DataInfo.lstDetectionData = append(a_DataInfo.lstDetectionData, DetectionDataType{
+			a_DataInfo.arrDetectionData = append(a_DataInfo.arrDetectionData, DetectionDataType{
 				nOperation: dtopSpoofing,
 			})
 
-			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Spoofing detected : dtopSpoofing : nCurrent="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
+			logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Spoofing detected : dtopSpoofing : nCurrent="+strconv.Itoa(getDetectionDataLength(a_DataInfo.arrDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.arrDetectionData)))
 
 			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Actual offer : "+getOfferData(a_OfferData))
 			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing offer : "+getOfferData(*OriginalSpoofingOffer))
 			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Original spoofing trade : "+getOfferData(*OriginalSpoofingTrade))
 
-			// lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
-			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
-			// for _, SpoofingTrade = range lstSpoofingTrades {
+			// arrSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
+			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(arrSpoofingTrades)))
+			// for _, SpoofingTrade = range arrSpoofingTrades {
 			// 	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
 			// }
 		}
@@ -84,25 +84,25 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 func getOriginalSpoofingOffer(a_TickerData *TickerDataType, a_OfferData OfferDataType) *OfferDataType {
 	var (
 		OriginalSpoofingOffer *OfferDataType
-		lstOfferData          []*OfferDataType
+		arrOfferData          []*OfferDataType
 		nIndex                int
 	)
 	OriginalSpoofingOffer = nil
 
-	lstOfferData = getOffersByPrimaryID(a_TickerData, a_OfferData.nPrimaryID)
-	for nIndex = 1; nIndex < len(lstOfferData); nIndex++ {
+	arrOfferData = getOffersByPrimaryID(a_TickerData, a_OfferData.nPrimaryID)
+	for nIndex = 1; nIndex < len(arrOfferData); nIndex++ {
 		// Verifica se oferta antiga era expressiva
-		if IsExpressiveOffer(a_TickerData, *lstOfferData[nIndex-1]) {
+		if IsExpressiveOffer(a_TickerData, *arrOfferData[nIndex-1]) {
 			if OriginalSpoofingOffer == nil {
 				// Obtem oferta antiga que era expressiva
-				OriginalSpoofingOffer = lstOfferData[nIndex-1]
+				OriginalSpoofingOffer = arrOfferData[nIndex-1]
 			}
 		} else {
 			// Caso oferta antiga deixou de ser expressiva seta para nulo
 			OriginalSpoofingOffer = nil
 		}
 		// Verifica se oferta eh igual a atual, pois tem o mesmo ID de geracao
-		if lstOfferData[nIndex].nGenerationID == a_OfferData.nGenerationID {
+		if arrOfferData[nIndex].nGenerationID == a_OfferData.nGenerationID {
 			// Se oferta atual deixou de expressiva ou eh igual a cancelada
 			if !IsExpressiveOffer(a_TickerData, a_OfferData) || a_OfferData.nOperation == ofopCancel {
 				if OriginalSpoofingOffer != nil {
@@ -124,7 +124,7 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfo
 	var (
 		AccountTrade        *OfferDataType
 		NearestAccountTrade *OfferDataType
-		lstAccountTrades    []*FullTradeType
+		arrAccountTrades    []*FullTradeType
 		nIndex              int
 		dtTradeDiff         time.Duration
 		dtNearestTrade      time.Duration
@@ -133,13 +133,13 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfo
 	dtNearestTrade = 0
 	NearestAccountTrade = nil
 
-	lstAccountTrades = getTradesByAccount(a_TickerData, a_OfferData.strAccount)
-	for nIndex = 0; nIndex < len(lstAccountTrades); nIndex++ {
+	arrAccountTrades = getTradesByAccount(a_TickerData, a_OfferData.strAccount)
+	for nIndex = 0; nIndex < len(arrAccountTrades); nIndex++ {
 		// Obtem o evento do trade no lado oposto da oferta de spoofing
 		if a_bBuyEvent {
-			AccountTrade = lstAccountTrades[nIndex].SellOfferTrade
+			AccountTrade = arrAccountTrades[nIndex].SellOfferTrade
 		} else {
-			AccountTrade = lstAccountTrades[nIndex].BuyOfferTrade
+			AccountTrade = arrAccountTrades[nIndex].BuyOfferTrade
 		}
 		// Verifica diferenca de tempo entre o evento de trade e a oferta de spoofing
 		dtTradeDiff = a_OfferData.dtTime.Sub(AccountTrade.dtTime)
@@ -201,27 +201,27 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfo
 //lint:ignore U1000 Ignore unused function
 func getSpoofingTrades(a_TickerData *TickerDataType, a_bBuyEvent bool, a_OriginalSpoofingTrade *OfferDataType) []*OfferDataType {
 	var (
-		lstSpoofingTrades []*OfferDataType
+		arrSpoofingTrades []*OfferDataType
 		TradeAux          *OfferDataType
-		lstTrades         []*OfferDataType
+		arrTrades         []*OfferDataType
 		FullTrade         *FullTradeType
 	)
-	lstSpoofingTrades = make([]*OfferDataType, 0)
+	arrSpoofingTrades = make([]*OfferDataType, 0)
 
-	lstTrades = getTradesBySecondaryID(a_TickerData, a_OriginalSpoofingTrade.nSecondaryID)
-	for _, TradeAux = range lstTrades {
+	arrTrades = getTradesBySecondaryID(a_TickerData, a_OriginalSpoofingTrade.nSecondaryID)
+	for _, TradeAux = range arrTrades {
 		FullTrade = getFullTrade(a_TickerData, TradeAux.nTradeID)
 		if FullTrade != nil {
 			// Obtem o trade do lado oposto que foi manipulado pela oferta expressiva
 			if a_bBuyEvent {
-				lstSpoofingTrades = append(lstSpoofingTrades, FullTrade.SellOfferTrade)
+				arrSpoofingTrades = append(arrSpoofingTrades, FullTrade.SellOfferTrade)
 			} else {
-				lstSpoofingTrades = append(lstSpoofingTrades, FullTrade.BuyOfferTrade)
+				arrSpoofingTrades = append(arrSpoofingTrades, FullTrade.BuyOfferTrade)
 			}
 		}
 	}
 
-	return lstSpoofingTrades
+	return arrSpoofingTrades
 }
 
 func checkLayering(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_OfferData OfferDataType, a_bBuyEvent bool) {
@@ -246,7 +246,7 @@ func exportResults(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 	const (
 		c_strMethodName = "alerts.exportResults"
 	)
-	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopSpoofing="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
-	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayering="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopLayering))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
-	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayeringModifiedOffers : nResults="+strconv.Itoa(getDetectionDataLength(a_DataInfo.lstDetectionData, dtopLayeringModifiedOffers))+" : nTotal="+strconv.Itoa(len(a_DataInfo.lstDetectionData)))
+	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopSpoofing="+strconv.Itoa(getDetectionDataLength(a_DataInfo.arrDetectionData, dtopSpoofing))+" : nTotal="+strconv.Itoa(len(a_DataInfo.arrDetectionData)))
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayering="+strconv.Itoa(getDetectionDataLength(a_DataInfo.arrDetectionData, dtopLayering))+" : nTotal="+strconv.Itoa(len(a_DataInfo.arrDetectionData)))
+	logger.Log(m_LogInfo, "Manipulation-Layering", c_strMethodName, getHeaderRun(a_TickerData.FilesInfo.TradeRunInfo)+" : Results exported successfully : dtopLayeringModifiedOffers : nResults="+strconv.Itoa(getDetectionDataLength(a_DataInfo.arrDetectionData, dtopLayeringModifiedOffers))+" : nTotal="+strconv.Itoa(len(a_DataInfo.arrDetectionData)))
 }
