@@ -146,12 +146,21 @@ func saveBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bool 
 	var (
 		err        error
 		bFullWrite bool
+		bAppend    bool
 		file       *os.File
 		writer     *csv.Writer
 	)
 	bFullWrite = true
 
-	file, err = os.OpenFile(a_strPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+	_, err = os.Stat(a_strPath)
+	if err == nil {
+		file, err = os.OpenFile(a_strPath, os.O_WRONLY|os.O_APPEND, os.ModePerm)
+		bAppend = true
+	} else {
+		file, err = os.OpenFile(a_strPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+		bAppend = false
+	}
+
 	if err == nil {
 		defer file.Close()
 
@@ -160,16 +169,18 @@ func saveBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bool 
 
 		defer writer.Flush()
 
-		// Escreve os dados do cabecalho (5 colunas)
-		err = writer.Write([]string{
-			c_strTickerHeader,
-			c_strAvgTradeIntervalHeader,
-			c_strAvgOfferSizeHeader,
-			c_strBiggerSDOfferSizeHeader,
-			c_strSmallerSDOfferSizeHeader,
-		})
+		if !bAppend {
+			// Escreve os dados do cabecalho (5 colunas)
+			err = writer.Write([]string{
+				c_strTickerHeader,
+				c_strAvgTradeIntervalHeader,
+				c_strAvgOfferSizeHeader,
+				c_strBiggerSDOfferSizeHeader,
+				c_strSmallerSDOfferSizeHeader,
+			})
+		}
 
-		if err == nil {
+		if err == nil || bAppend {
 			// Escreve os dados da oferta
 			err = writer.Write([]string{
 				a_TickerData.FilesInfo.GenerationInfo.strTickerName,                              // cod_simbolo_instrumento_negociacao (geracao - normalizado)

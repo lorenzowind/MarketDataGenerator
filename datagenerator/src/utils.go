@@ -38,6 +38,25 @@ func getReferencePath() string {
 	return getDataPath() + c_strReferenceFolder
 }
 
+func getInputBuyPath() string {
+	return getDataPath() + c_strReferenceFolder + "/" + c_strInputBuyFolder
+}
+
+func getInputSellPath() string {
+	return getDataPath() + c_strReferenceFolder + "/" + c_strInputSellFolder
+}
+
+func getReferenceBenchmark() string {
+	var (
+		strBenchmarkPath string
+	)
+	strBenchmarkPath = getReferencePath() + "/" + c_strBenchmarksFile
+	if !checkFileExists(strBenchmarkPath) {
+		strBenchmarkPath = ""
+	}
+	return strBenchmarkPath
+}
+
 func printMainMenuOptions(a_strParentLog string) {
 	const (
 		c_strMethodName = "utils.printMainMenuOptions"
@@ -49,6 +68,7 @@ func printMainMenuOptions(a_strParentLog string) {
 	strOptions = "\n\n"
 	strOptions += "\t0 - Exit\n"
 	strOptions += "\t1 - Generate unique offers book (buy and sell data)\n"
+	strOptions += "\t2 - Generate all offers book by trade interval (benchmark) \n"
 
 	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, strOptions)
 	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write an option on terminal")
@@ -139,7 +159,12 @@ func validateDateString(a_strDate string) (time.Time, error) {
 		a_strDate = a_strDate[:len(time.DateOnly)]
 	}
 
-	dtDate, err = time.Parse(time.DateOnly, a_strDate)
+	if strings.Contains(a_strDate, "-") {
+		dtDate, err = time.Parse(time.DateOnly, a_strDate)
+	} else {
+		dtDate, err = time.Parse(c_strCustomDateLayout, a_strDate)
+	}
+
 	return dtDate, err
 }
 
@@ -183,6 +208,67 @@ func validateGenerationInput(a_strParentLog, a_strReferenceTickerName, a_strRefe
 	}, nil
 }
 
+func validateGenerationRule(a_strParentLog, a_strTickerNameRule, a_strTickerDate string, a_Pattern PatternType) (GenerationRuleType, error) {
+	const (
+		c_strMethodName = "utils.validateGenerationPattern"
+	)
+	var (
+		err          error
+		dtTickerDate time.Time
+	)
+	// Valida ticker de referencia informado no terminal
+	if a_strTickerNameRule == "" || strings.Contains(a_strTickerNameRule, " ") {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker name rule")
+		return GenerationRuleType{}, errors.New("ticker name rule validation failure")
+	}
+	// Valida data informada no terminal e converte para um tipo data
+	dtTickerDate, err = validateDateString(a_strTickerDate)
+	if err != nil {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid ticker date : "+err.Error())
+		return GenerationRuleType{}, errors.New("ticker date validation failure")
+	}
+
+	return GenerationRuleType{
+		strTickerNameRule: a_strTickerNameRule,
+		dtTickerDate:      dtTickerDate,
+		Pattern:           a_Pattern,
+	}, nil
+}
+
+func validateAvgTradeInterval(a_strParentLog, a_strMin, a_strMax string) (PatternType, error) {
+	const (
+		c_strMethodName = "utils.validateAvgTradeInterval"
+	)
+	var (
+		err   error
+		dtMin time.Time
+		dtMax time.Time
+	)
+	// Valida valor minimo informada no terminal e converte para um tipo data
+	dtMin, err = validateTimestampString(a_strMin)
+	if err != nil {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid min value : "+err.Error())
+		return PatternType{}, errors.New("min value validation failure")
+	}
+	// Valida valor maximo informada no terminal e converte para um tipo data
+	dtMax, err = validateTimestampString(a_strMax)
+	if err != nil {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid max value : "+err.Error())
+		return PatternType{}, errors.New("max value validation failure")
+	}
+	// Valida se valor minimo eh menor que valor maximo
+	if dtMax.Before(dtMin) {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Min value is higher of max : dtMin="+getTimeAsCustomDuration(dtMin)+" : dtMax="+getTimeAsCustomDuration(dtMax))
+		return PatternType{}, errors.New("min value is higher of max validation failure")
+	}
+
+	return PatternType{
+		nBenchmarkFilter:      bfAvgTradeInterval,
+		dtMinAvgTradeInterval: dtMin,
+		dtMaxAvgTradeInterval: dtMax,
+	}, nil
+}
+
 func readGenerationInput(a_strParentLog string) (GenerationInfoType, error) {
 	const (
 		c_strMethodName = "utils.readGenerationInput"
@@ -193,7 +279,6 @@ func readGenerationInput(a_strParentLog string) (GenerationInfoType, error) {
 		strTickerName          string
 		strTickerDate          string
 	)
-
 	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the reference ticker name on terminal")
 	strReferenceTickerName = getStringFromInput(a_strParentLog)
 
@@ -207,6 +292,49 @@ func readGenerationInput(a_strParentLog string) (GenerationInfoType, error) {
 	strTickerDate = getStringFromInput(a_strParentLog)
 
 	return validateGenerationInput(a_strParentLog, strReferenceTickerName, strReferenceTickerDate, strTickerName, strTickerDate)
+}
+
+func readGenerationRule(a_strParentLog string, a_nBenchmarkFilter BenchmarkFilterType) (GenerationRuleType, error) {
+	const (
+		c_strMethodName = "utils.readGenerationPattern"
+	)
+	var (
+		err                    error
+		strTickerNameRule      string
+		strTickerDate          string
+		strMaxAvgTradeInterval string
+		strMinAvgTradeInterval string
+		Pattern                PatternType
+	)
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the ticker name rule on terminal (format string with no spaces - will concat a number)")
+	strTickerNameRule = getStringFromInput(a_strParentLog)
+
+	logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the generation trade date on terminal (format yyyy-mm-dd)")
+	strTickerDate = getStringFromInput(a_strParentLog)
+
+	if a_nBenchmarkFilter == bfAvgTradeInterval {
+		logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the min value for average trade interval on terminal (format hh:mm:ss.zzz)")
+		strMinAvgTradeInterval = getStringFromInput(a_strParentLog)
+
+		logger.Log(m_LogInfo, a_strParentLog, c_strMethodName, "Write the max value for average trade interval on terminal (format hh:mm:ss.zzz)")
+		strMaxAvgTradeInterval = getStringFromInput(a_strParentLog)
+
+		Pattern, err = validateAvgTradeInterval(a_strParentLog, strMinAvgTradeInterval, strMaxAvgTradeInterval)
+	} else {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Invalid benchmark filter")
+		err = errors.New("benchmark filter validation failure")
+	}
+
+	if err == nil && getReferenceBenchmark() == "" {
+		logger.LogError(m_LogInfo, a_strParentLog, c_strMethodName, "Benchmark file not found")
+		err = errors.New("benchmark file not found")
+	}
+
+	if err != nil {
+		return GenerationRuleType{}, err
+	}
+
+	return validateGenerationRule(a_strParentLog, strTickerNameRule, strTickerDate, Pattern)
 }
 
 func checkFileExists(a_strFullPath string) bool {
@@ -286,7 +414,7 @@ func getTickerData(a_TickerData TickerDataType) string {
 
 	// So exibe valores de benchmark caso tenha o encontrado
 	if a_TickerData.BenchmarkData.bHasBenchmarkData {
-		strResult = strResult + " : AvgTrade=" + a_TickerData.BenchmarkData.dtAvgTradeInterval.String()
+		strResult = strResult + " : AvgTradeInterval=" + getTimeAsCustomDuration(a_TickerData.BenchmarkData.dtAvgTradeInterval)
 		strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
 		strResult = strResult + " : SmallerSDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sSmallerSDOfferSize, 'f', -1, 64)
 		strResult = strResult + " : BiggerSDOfferSize=" + strconv.FormatFloat(a_TickerData.BenchmarkData.sBiggerSDOfferSize, 'f', -1, 64)

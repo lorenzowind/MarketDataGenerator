@@ -436,7 +436,7 @@ func getTickerData(a_TickerData *TickerDataType) string {
 
 	// So exibe valores de benchmark caso tenha o encontrado
 	if a_TickerData.AuxiliarData.BenchmarkData.bHasBenchmarkData {
-		strResult = strResult + " : AvgTrade=" + a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval.String()
+		strResult = strResult + " : AvgTradeInterval=" + a_TickerData.AuxiliarData.BenchmarkData.dtAvgTradeInterval.String()
 		strResult = strResult + " : AvgOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sAvgOfferSize, 'f', -1, 64)
 		strResult = strResult + " : SDOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sSDOfferSize, 'f', -1, 64)
 		strResult = strResult + " : ExpressiveOfferSize=" + strconv.FormatFloat(a_TickerData.AuxiliarData.BenchmarkData.sExpressiveOfferSize, 'f', -1, 64)

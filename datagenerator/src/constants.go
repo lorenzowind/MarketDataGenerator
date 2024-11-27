@@ -5,6 +5,8 @@ const (
 	c_strLogsFolder      = "/logs"
 	c_strInputFolder     = "/input"
 	c_strReferenceFolder = "/reference"
+	c_strInputBuyFolder  = "/input_buy"
+	c_strInputSellFolder = "/input_sell"
 
 	c_strReferenceDateFormat = "%.2d%.2d%.4d"                              // ddmmyyyy
 	c_strReferenceBuyFile    = c_strReferenceDateFormat + "_%s_compra.csv" // ddmmyyyy_<TICKER>_compra.csv
@@ -23,4 +25,6 @@ const (
 	c_strCustomTimestampLayout  = "2006-01-02T15:04:05.999"
 	c_strCustomTimestampLayout2 = "2006-01-02 15:04:05.999"
 	c_strCustomTimestampLayout3 = "15:04:05.999"
+
+	c_strCustomDateLayout = "02012006"
 )

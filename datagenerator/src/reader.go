@@ -5,12 +5,97 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"io/fs"
 	logger "marketmanipulationdetector/logger/src"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func generateFilterTickers(a_GenerationRule GenerationRuleType) []GenerationInfoType {
+	var (
+		err               error
+		arrTickers        []string
+		nCurrent          int
+		strName           string
+		dtReference       time.Time
+		GenerationInfo    GenerationInfoType
+		arrGenerationInfo []GenerationInfoType
+	)
+	arrGenerationInfo = make([]GenerationInfoType, 0)
+
+	arrTickers = getFilterTickersByBenchmarkFromFile(getReferenceBenchmark(), a_GenerationRule.Pattern)
+
+	for _, strName = range arrTickers {
+		// Tenta data do ticker (na pasta de referencia)
+		dtReference, err = getReferenceTickerDate(strName, getReferencePath())
+		if err != nil {
+			// Tenta data do ticker (na pasta de referencia de compra)
+			dtReference, err = getReferenceTickerDate(strName, getInputBuyPath())
+			if err != nil {
+				// Tenta data do ticker (na pasta de referencia de venda)
+				dtReference, err = getReferenceTickerDate(strName, getInputSellPath())
+			}
+		}
+
+		if err == nil {
+			// Incrementa o numero de tickers
+			nCurrent++
+			// Obtem nome do ticker para geracao
+			GenerationInfo.strTickerName = a_GenerationRule.strTickerNameRule + strconv.Itoa(nCurrent)
+			// Obtem data do ticker para geracao
+			GenerationInfo.dtTickerDate = a_GenerationRule.dtTickerDate
+			// Obtem nome do ticker de referencia
+			GenerationInfo.strReferenceTickerName = strName
+			// Obtem data do ticker de referencia
+			GenerationInfo.dtReferenceTickerDate = dtReference
+
+			arrGenerationInfo = append(arrGenerationInfo, GenerationInfo)
+		}
+	}
+
+	return arrGenerationInfo
+}
+
+func getReferenceTickerDate(a_strTicker string, a_strReferenceFolder string) (time.Time, error) {
+	var (
+		err          error
+		strFileName  string
+		arrFileInfo  []string
+		dtTickerDate time.Time
+		dir          fs.DirEntry
+		arrDir       []fs.DirEntry
+	)
+	arrDir, err = os.ReadDir(a_strReferenceFolder)
+
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	// Itera sobre cada arquivo da pasta input
+	for _, dir = range arrDir {
+		// So verifica se for um arquivo
+		if !dir.IsDir() {
+			strFileName = filepath.Base(dir.Name())
+			arrFileInfo = strings.Split(strFileName, "_")
+
+			// So verifica arquivo no formato ddmmyyyy_<TICKER>_<compra/venda>.csv
+			if len(arrFileInfo) == 3 {
+				// So verifica arquivo com o mesmo nome do ticker encontrado no arquivo de benchmark
+				if arrFileInfo[1] == a_strTicker {
+					dtTickerDate, err = validateDateString(arrFileInfo[0])
+					if err == nil {
+						return dtTickerDate, err
+					}
+				}
+			}
+		}
+	}
+
+	return time.Time{}, errors.New("reference ticker not found")
+}
 
 func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType, error) {
 	const (
@@ -22,13 +107,29 @@ func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType,
 		strBuyPath       string
 		strSellPath      string
 		strBenchmarkPath string
+		strInputBuyPath  string
+		strInputSellPath string
 		bFileExists      bool
 		FilesInfo        FilesInfoType
 	)
-	strReferencePath = getReferencePath() + "/"
 
-	strBuyPath = strReferencePath + fmt.Sprintf(c_strReferenceBuyFile, a_GenerationInfo.dtReferenceTickerDate.Day(), a_GenerationInfo.dtReferenceTickerDate.Month(), a_GenerationInfo.dtReferenceTickerDate.Year(), a_GenerationInfo.strReferenceTickerName)
-	bFileExists = checkFileExists(strBuyPath)
+	strReferencePath = getReferencePath() + "/"
+	strInputBuyPath = getInputBuyPath() + "/"
+	strInputSellPath = getInputSellPath() + "/"
+
+	strBuyPath = fmt.Sprintf(c_strReferenceBuyFile, a_GenerationInfo.dtReferenceTickerDate.Day(), a_GenerationInfo.dtReferenceTickerDate.Month(), a_GenerationInfo.dtReferenceTickerDate.Year(), a_GenerationInfo.strReferenceTickerName)
+
+	// Tenta arquivo de compra na pasta de referencia
+	bFileExists = checkFileExists(strReferencePath + strBuyPath)
+	if !bFileExists {
+		// Tenta arquivo na pasta de referencia de compra
+		bFileExists = checkFileExists(strInputBuyPath + strBuyPath)
+		if bFileExists {
+			strBuyPath = strInputBuyPath + strBuyPath
+		}
+	} else {
+		strBuyPath = strReferencePath + strBuyPath
+	}
 
 	if bFileExists {
 		logger.Log(m_LogInfo, "Main", c_strMethodName, "Buy reference file found : strBuyPath="+strBuyPath)
@@ -36,8 +137,19 @@ func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType,
 		strBuyPath = ""
 	}
 
-	strSellPath = strReferencePath + fmt.Sprintf(c_strReferenceSellFile, a_GenerationInfo.dtReferenceTickerDate.Day(), a_GenerationInfo.dtReferenceTickerDate.Month(), a_GenerationInfo.dtReferenceTickerDate.Year(), a_GenerationInfo.strReferenceTickerName)
-	bFileExists = checkFileExists(strSellPath)
+	strSellPath = fmt.Sprintf(c_strReferenceSellFile, a_GenerationInfo.dtReferenceTickerDate.Day(), a_GenerationInfo.dtReferenceTickerDate.Month(), a_GenerationInfo.dtReferenceTickerDate.Year(), a_GenerationInfo.strReferenceTickerName)
+
+	// Tenta arquivo de venda na pasta de referencia
+	bFileExists = checkFileExists(strReferencePath + strSellPath)
+	if !bFileExists {
+		// Tenta arquivo na pasta de referencia de venda
+		bFileExists = checkFileExists(strInputSellPath + strSellPath)
+		if bFileExists {
+			strSellPath = strInputSellPath + strSellPath
+		}
+	} else {
+		strSellPath = strReferencePath + strSellPath
+	}
 
 	if bFileExists {
 		logger.Log(m_LogInfo, "Main", c_strMethodName, "Sell reference file found : strSellPath="+strSellPath)
@@ -45,16 +157,12 @@ func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType,
 		strSellPath = ""
 	}
 
-	strBenchmarkPath = strReferencePath + c_strBenchmarksFile
-	bFileExists = checkFileExists(strBenchmarkPath)
-
-	if bFileExists {
-		logger.Log(m_LogInfo, "Main", c_strMethodName, "Benchmarks reference file found : strBenchmarkPath="+strBenchmarkPath)
-	} else {
-		strBenchmarkPath = ""
+	strBenchmarkPath = getReferenceBenchmark()
+	if strBenchmarkPath != "" {
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "Benchmark file found : strBenchmarkPath="+strBenchmarkPath)
 	}
 
-	// Existe os 2 arquivos (compra e venda) ou existe pelo menos o de compra ou venda, alem do arquivo de benchmarks
+	// Existe os 2 arquivos (compra e venda) ou existe pelo menos o de compra ou venda
 	if strBuyPath != "" || strSellPath != "" {
 		FilesInfo = FilesInfoType{
 			GenerationInfo: GenerationInfoType{
@@ -78,7 +186,12 @@ func getReferenceOffersBook(a_GenerationInfo GenerationInfoType) (FilesInfoType,
 }
 
 func getOffersBook(a_FilesInfo *FilesInfoType) {
-	strInputPath := getInputPath() + "/"
+	//lint:ignore S1021 Ignore merge variable declaration with assignment on next line
+	var (
+		strInputPath string
+	)
+	strInputPath = getInputPath() + "/"
+
 	// Salva nome do arquivo de compra (referencia -> geracao)
 	if a_FilesInfo.strReferenceBuyPath != "" {
 		a_FilesInfo.strBuyPath = strInputPath + fmt.Sprintf(c_strBuyFile, a_FilesInfo.GenerationInfo.dtTickerDate.Year(), a_FilesInfo.GenerationInfo.dtTickerDate.Month(), a_FilesInfo.GenerationInfo.dtTickerDate.Day(), a_FilesInfo.GenerationInfo.strTickerName)
@@ -127,6 +240,60 @@ func loadTickerData(a_FilesInfo FilesInfoType) TickerDataType {
 	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
 
 	return TickerData
+}
+
+func getFilterTickersByBenchmarkFromFile(a_strPath string, a_Pattern PatternType) []string {
+	const (
+		c_strMethodName          = "reader.getFilterTickersByBenchmarkFromFile"
+		c_nTickerIndex           = 0
+		c_nAvgTradeIntervalIndex = 1
+		c_nLastIndex             = 4
+	)
+	var (
+		err                error
+		arrRecord          []string
+		arrFullRecords     [][]string
+		file               *os.File
+		reader             *csv.Reader
+		dtAvgTradeInterval time.Time
+		arrFilterTickers   []string
+	)
+	arrFilterTickers = make([]string, 0)
+
+	file, err = os.Open(a_strPath)
+	if err == nil {
+		reader = csv.NewReader(file)
+		reader.Comma = ','
+
+		arrFullRecords, err = reader.ReadAll()
+		if err == nil {
+			// Inicia da linha 1 (pula o header)
+			for _, arrRecord = range arrFullRecords[1:] {
+				// Verifica tamanho da linha
+				if len(arrRecord) != c_nLastIndex+1 {
+					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Invalid columns size : "+strconv.Itoa(len(arrRecord))+" : arrRecord="+strings.Join(arrRecord, ", "))
+					continue
+				}
+
+				if a_Pattern.nBenchmarkFilter == bfAvgTradeInterval {
+					dtAvgTradeInterval = getTimeFromFile(arrRecord, c_nAvgTradeIntervalIndex)
+
+					// Verifica se benchmark se encontra no intervalo fechado definido
+					if a_Pattern.dtMinAvgTradeInterval.Compare(dtAvgTradeInterval) <= 0 && a_Pattern.dtMaxAvgTradeInterval.Compare(dtAvgTradeInterval) >= 0 {
+						arrFilterTickers = append(arrFilterTickers, arrRecord[c_nTickerIndex])
+					}
+				}
+			}
+
+			defer file.Close()
+		} else {
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to read the records : "+err.Error())
+		}
+	} else {
+		logger.LogError(m_LogInfo, "Main", c_strMethodName, "Fail to open the file : "+err.Error())
+	}
+
+	return arrFilterTickers
 }
 
 func tryLoadBenchmarkFromFile(a_strPath string, a_TickerData *TickerDataType) bool {

@@ -54,6 +54,7 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 	var (
 		OriginalSpoofingOffer *OfferDataType
 		OriginalSpoofingTrade *OfferDataType
+		// SpoofingTrade         *OfferDataType
 		// lstSpoofingTrades     []*OfferDataType
 	)
 	OriginalSpoofingOffer = getOriginalSpoofingOffer(a_TickerData, a_OfferData)
@@ -73,7 +74,7 @@ func checkSpoofing(a_TickerData *TickerDataType, a_DataInfo *DataInfoType, a_Off
 
 			// lstSpoofingTrades = getSpoofingTrades(a_TickerData, a_bBuyEvent, OriginalSpoofingTrade)
 			// logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trades count : "+strconv.Itoa(len(lstSpoofingTrades)))
-			// for _, SpoofingTrade := range lstSpoofingTrades {
+			// for _, SpoofingTrade = range lstSpoofingTrades {
 			// 	logger.Log(m_LogInfo, "Manipulation-Spoofing", c_strMethodName, "Spoofing trade : "+getOfferData(*SpoofingTrade))
 			// }
 		}

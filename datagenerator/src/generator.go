@@ -2,6 +2,7 @@ package src
 
 import (
 	logger "marketmanipulationdetector/logger/src"
+	"time"
 )
 
 var (
@@ -57,6 +58,8 @@ func startMenu() {
 		if validateMainMenuOption("Main", nOption) {
 			if nOption == 1 {
 				startGenerationForUniqueOffersBook()
+			} else if nOption == 2 {
+				startGenerationForAllOffersBook(bfAvgTradeInterval)
 			} else if nOption == 0 {
 				break
 			}
@@ -79,7 +82,7 @@ func startGenerationForUniqueOffersBook() {
 
 	GenerationInfo, err = readGenerationInput("Main")
 	if err == nil {
-		logger.Log(m_LogInfo, "Main", c_strMethodName, "strReferenceTickerName="+GenerationInfo.strReferenceTickerName+" : dtReferenceTickerDate="+GenerationInfo.dtReferenceTickerDate.String()+" : strTickerName="+GenerationInfo.strTickerName+" : dtTickerDate="+GenerationInfo.dtTickerDate.String())
+		logger.Log(m_LogInfo, "Main", c_strMethodName, "strReferenceTickerName="+GenerationInfo.strReferenceTickerName+" : dtReferenceTickerDate="+GenerationInfo.dtReferenceTickerDate.Format(time.DateOnly)+" : strTickerName="+GenerationInfo.strTickerName+" : dtTickerDate="+GenerationInfo.dtTickerDate.Format(time.DateOnly))
 
 		FilesInfo, err = getReferenceOffersBook(GenerationInfo)
 		// Verifica se arquivos (compra e venda) de referencia existem conforme ticker e data informado
@@ -88,6 +91,48 @@ func startGenerationForUniqueOffersBook() {
 			generateOffersBook(FilesInfo)
 		} else {
 			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Ticker file not found")
+		}
+	}
+
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "End")
+}
+
+func startGenerationForAllOffersBook(a_nBenchmarkFilter BenchmarkFilterType) {
+	const (
+		c_strMethodName = "generator.startGenerationForAllOffersBook"
+	)
+	var (
+		err               error
+		FilesInfo         FilesInfoType
+		GenerationRule    GenerationRuleType
+		GenerationInfo    GenerationInfoType
+		arrGenerationInfo []GenerationInfoType
+	)
+	logger.Log(m_LogInfo, "Main", c_strMethodName, "Begin")
+
+	GenerationRule, err = readGenerationRule("Main", a_nBenchmarkFilter)
+	if err == nil {
+		// Loga o filtro de benchmark considerando o intervalo entre trades
+		if a_nBenchmarkFilter == bfAvgTradeInterval {
+			logger.Log(m_LogInfo, "Main", c_strMethodName, "strTickerNameRule="+GenerationRule.strTickerNameRule+" : dtTickerDate="+GenerationRule.dtTickerDate.Format(time.DateOnly)+" : dtMinAvgTradeInterval="+getTimeAsCustomDuration(GenerationRule.Pattern.dtMinAvgTradeInterval)+" : dtMaxAvgTradeInterval="+getTimeAsCustomDuration(GenerationRule.Pattern.dtMaxAvgTradeInterval))
+		}
+		// Gera tickers com base no benchmark informado (ja filtrados)
+		arrGenerationInfo = generateFilterTickers(GenerationRule)
+
+		if len(arrGenerationInfo) > 0 {
+			// Itera sobre tickers disponiveis e processa cada um
+			for _, GenerationInfo = range arrGenerationInfo {
+				FilesInfo, err = getReferenceOffersBook(GenerationInfo)
+				// Verifica se arquivos (compra e venda) de referencia existem conforme ticker e data informado
+				if err == nil {
+					// Inicia geracao do livro
+					generateOffersBook(FilesInfo)
+				} else {
+					logger.LogError(m_LogInfo, "Main", c_strMethodName, "Ticker file not found")
+				}
+			}
+		} else {
+			logger.LogError(m_LogInfo, "Main", c_strMethodName, "Any ticker files not found")
 		}
 	}
 

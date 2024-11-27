@@ -7,6 +7,8 @@ import (
 
 type OfferOperationType byte
 
+type BenchmarkFilterType byte
+
 const (
 	ofopCreation  OfferOperationType = '0' // evento de criacao da oferta
 	ofopCancel                       = '4' // evento de cancelamento da oferta
@@ -16,6 +18,23 @@ const (
 	ofopReafirmed                    = 'D' // evento de reafirmacao da oferta
 	ofopUnknown                      = iota
 )
+
+const (
+	bfAvgTradeInterval BenchmarkFilterType = 0 // considera benchmark de intervalo entre trades
+	bfUnknown                              = iota
+)
+
+type GenerationRuleType struct {
+	strTickerNameRule string
+	dtTickerDate      time.Time
+	Pattern           PatternType
+}
+
+type PatternType struct {
+	nBenchmarkFilter      BenchmarkFilterType
+	dtMaxAvgTradeInterval time.Time
+	dtMinAvgTradeInterval time.Time
+}
 
 type GenerationInfoType struct {
 	strTickerName          string
