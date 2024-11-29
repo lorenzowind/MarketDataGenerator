@@ -386,7 +386,6 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 		file           *os.File
 		reader         *csv.Reader
 		OfferData      OfferDataType
-		nPrimaryID     int
 	)
 	file, err = os.Open(a_strPath)
 	if err == nil {
@@ -418,15 +417,8 @@ func loadOfferDataFromFile(a_strPath string, a_TickerData *TickerDataType, bBuy 
 				OfferData.strAccount = maskStringToIntString(arrRecord[c_nAccountIndex], a_TickerData.MaskDataInfo.hshMaskAccount, &a_TickerData.MaskDataInfo.nCurrentAccount)
 				// Verifica numero do negocio relacionado
 				OfferData.nTradeID = getTradeIDFromFile(arrRecord, c_nTradeIDIndex)
-
 				// Verifica numero primario da oferta e faz mascaramento
-				// Alem disso, verifica regra de excecao onde o evento de criacao aparece com o mesmo numero primario da oferta anterior
-				nPrimaryID = maskIntToInt(getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex), a_TickerData.MaskDataInfo.hshMaskPrimaryID, &a_TickerData.MaskDataInfo.nCurrentPrimaryID)
-				if OfferData.nPrimaryID != 0 && OfferData.nPrimaryID == nPrimaryID && OfferData.nOperation == ofopCreation {
-					OfferData.nOperation = ofopEdit
-				}
-				OfferData.nPrimaryID = nPrimaryID
-
+				OfferData.nPrimaryID = maskIntToInt(getOfferPrimaryIDFromFile(arrRecord, c_nPrimaryIDIndex), a_TickerData.MaskDataInfo.hshMaskPrimaryID, &a_TickerData.MaskDataInfo.nCurrentPrimaryID)
 				// Verifica numero secundario da oferta e faz mascaramento
 				OfferData.nSecondaryID = maskIntToInt(getOfferSecondaryIDFromFile(arrRecord, c_nSecondaryIDIndex), a_TickerData.MaskDataInfo.hshMaskSecondaryID, &a_TickerData.MaskDataInfo.nCurrentSecondaryD)
 				// Verifica quantidade restante

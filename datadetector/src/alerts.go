@@ -135,20 +135,23 @@ func getOriginalSpoofingTrade(a_TickerData *TickerDataType, a_DataInfo *DataInfo
 
 	arrAccountTrades = getTradesByAccount(a_TickerData, a_OfferData.strAccount)
 	for nIndex = 0; nIndex < len(arrAccountTrades); nIndex++ {
-		// Obtem o evento do trade no lado oposto da oferta de spoofing
-		if a_bBuyEvent {
-			AccountTrade = arrAccountTrades[nIndex].SellOfferTrade
-		} else {
-			AccountTrade = arrAccountTrades[nIndex].BuyOfferTrade
-		}
-		// Verifica diferenca de tempo entre o evento de trade e a oferta de spoofing
-		dtTradeDiff = a_OfferData.dtTime.Sub(AccountTrade.dtTime)
-		if dtTradeDiff < dtNearestTrade || dtNearestTrade == 0 {
-			dtNearestTrade = dtTradeDiff
-			// Armazena o evento de trade mais proximo
-			NearestAccountTrade = AccountTrade
-		} else {
-			break
+		// Verifica se o trade de compra e venda de uma conta eh valido (possivelmente se aconteceu no mesmo dia)
+		if arrAccountTrades[nIndex].BuyOfferTrade != nil && arrAccountTrades[nIndex].SellOfferTrade != nil {
+			// Obtem o evento do trade no lado oposto da oferta de spoofing
+			if a_bBuyEvent {
+				AccountTrade = arrAccountTrades[nIndex].SellOfferTrade
+			} else {
+				AccountTrade = arrAccountTrades[nIndex].BuyOfferTrade
+			}
+			// Verifica diferenca de tempo entre o evento de trade e a oferta de spoofing
+			dtTradeDiff = a_OfferData.dtTime.Sub(AccountTrade.dtTime)
+			if dtTradeDiff < dtNearestTrade || dtNearestTrade == 0 {
+				dtNearestTrade = dtTradeDiff
+				// Armazena o evento de trade mais proximo
+				NearestAccountTrade = AccountTrade
+			} else {
+				break
+			}
 		}
 	}
 

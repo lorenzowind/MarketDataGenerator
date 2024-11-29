@@ -81,6 +81,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 			NextBuy = NextBuy.Next()
 			if NextBuy == nil {
 				EventInfo.bBuyEventsEnd = true
+				EventInfo.bSellEventsEnd = true
 			}
 		} else if NextSell != nil && !EventInfo.bSellEventsEnd {
 			SellData = NextSell.Value.(OfferDataType)
@@ -90,6 +91,7 @@ func processEvents(a_TickerData *TickerDataType, a_DataInfo *DataInfoType) {
 			// Obtem o proximo evento de oferta de venda
 			NextSell = NextSell.Next()
 			if NextSell == nil {
+				EventInfo.bBuyEventsEnd = true
 				EventInfo.bSellEventsEnd = true
 			}
 		} else {
