@@ -27,7 +27,7 @@
 ## About The Project
 This project is a software solution developed to enhance the detection and supervision of financial asset trading irregularities, such as layering and spoofing, in electronic markets. Designed in partnership with [BSM Supervisão de Mercados](https://www.bsmsupervisao.com.br/), this tool facilitates the generation of test data and the detection of manipulative behaviors through automated processes.
 
-The system ensures accuracy and reliability by utilizing benchmarks and reference data to simulate and analyze trading activities. With a focus on scalability and efficiency, it supports the supervision of financial asset trading by providing comprehensive insights and actionable results.
+The system ensures accuracy and reliability by utilizing benchmarks and reference data to simulate and analyze trading activities. With a focus exploring potentials of parallelism, it supports the supervision of post-processing financial asset trading.
 
 ## Team
 - Lorenzo Windmoller Martins (Back-end developer)
