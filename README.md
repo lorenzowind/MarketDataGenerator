@@ -10,9 +10,9 @@
   <p align="center">
     Software to explore the parallelism in anomaly detection on post-processing of market data!
     <br />
-    <a href="https://github.com/lorenzowind/SecexLog/issues/new">Report Bug</a>
+    <a href="https://github.com/lorenzowind/MarketManipulationDetector/issues/new">Report Bug</a>
     ·
-    <a href="https://github.com/lorenzowind/SecexLog/issues/new">Request Feature</a>
+    <a href="https://github.com/lorenzowind/MarketManipulationDetector/issues/new">Request Feature</a>
   </p>
 </p>
 
